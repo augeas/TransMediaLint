@@ -36,13 +36,24 @@ def annotate(text):
     for rule in regexRules:
         for match in re.finditer(rule.rule, text):
 
-            print match.group()
-
-            print match.span()[0]
-
             issues_list.append(
                 Annotation(match.group(), match.span()[0], rule.tag)
             )
 
     return issues_list
 
+def score(text):
+
+    annotation_points = {
+        'inappropriate': -1,
+        'inaccurate': -2,
+        'offensive': -5
+    }
+
+    annotations = annotate(text)
+
+    return sum(
+        annotation_points[annotation.why]
+
+        for annotation in annotations
+    )
