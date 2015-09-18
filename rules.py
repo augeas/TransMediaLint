@@ -3,7 +3,7 @@ from collections import namedtuple
 
 tags = {'offensive':'term which many trans people find offensive',
         'inaccurate':'inaccurate usage',
-        'inaccurate','Many trans and intersex people consider this terms inappropriate'}
+        'inappropriate':'Many trans and intersex people consider this terms inappropriate'}
 
 RegRule = namedtuple('RegRule', ['rule','tag'])
 
@@ -24,5 +24,5 @@ regexRules = [RegRule(r'[pP]ost.[oO]p','offensive'),
               RegRule(r'[bB]orn a ([wW]o)?[mM]an','inaccurate'),
               RegRule(r'[sS]ex.[rR]eassignment.[sS]urgery','inappropriate'),
               RegRule(r'[gG]ender.[rR]eassignment.[sS]urgery','inappropriate')]
-              
+
 
