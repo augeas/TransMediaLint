@@ -1,4 +1,4 @@
-from ..lint import annotate
+from ..lint import annotate, score
 
 def test_linter_annotates_one_bad_word():
     text_sample = "Mary had a sex swap"
@@ -28,3 +28,32 @@ def test_linter_annotates_multiple_bad_words():
     assert annotation.what == "sex change"
     assert annotation.why == "offensive"
     assert annotation.where == 8
+
+def test_scoring():
+    text_sample = """
+
+    This is some test text that contains some words that should trigger the linter
+    and produce a negative score
+
+    For example, it has the word post op which can be offensive. This scores -5
+
+    (-5)
+
+    It also has this: sex change - another -5
+
+    (-10)
+
+    In addition, it refers to gender identity disorder which is an inappropriate thing to refer
+    to, scoring -1
+
+    (-11)
+
+    Finally, it refers to a man by scare quotes: "man" - offensively undermining -5
+
+    (-16)
+
+    """
+
+    assert score(text_sample) == -16
+
+
