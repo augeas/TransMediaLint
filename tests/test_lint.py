@@ -48,8 +48,12 @@ def test_scoring():
 
     (-11)
 
+    Finally, it refers to a man by scare quotes: "man" - offensively undermining -5
+
+    (-16)
+
     """
 
-    assert score(text_sample) == -11
+    assert score(text_sample) == -16
 
 

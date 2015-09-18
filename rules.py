@@ -23,6 +23,7 @@ regexRules = [RegRule(r'[pP]ost.[oO]p','offensive'),
               RegRule(r'[gG]ender.[rR]ealignment','inaccurate'),
               RegRule(r'[bB]orn a ([wW]o)?[mM]an','inaccurate'),
               RegRule(r'[sS]ex.[rR]eassignment.[sS]urgery','inappropriate'),
-              RegRule(r'[gG]ender.[rR]eassignment.[sS]urgery','inappropriate')]
+              RegRule(r'[gG]ender.[rR]eassignment.[sS]urgery','inappropriate'),
+              RegRule(r'(\"[mM]an\")|(\"[wW]oman\")|(\"[mM]ale\")|(\"[fF]emale\")|(\"[bB]oy\")|(\"[gG]irl\")','offensive')]
 
 
