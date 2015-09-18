@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <script src="static/js/jquery-2.1.4.min.js"></script>
+        <script>
+            function doLint() {
+                alert("Sod this.");
+                $.ajax({url: "api/test",
+                    method: "POST",
+                    data:{url: url},
+                    dataType:'json',
+                    success:function(data,status,req) {
+                    $('#lintContent').contents().find('body').html(data.content);
+                    $('#lintContent').contents().find('body').find('span.offensive').css('background-color','#FF0000');    
+                }});
+            }
+        
+            function testURL() {
+                var url = $('#urlField').val();
+                $('#lintContent').prop('src', url);
+                $("#lintContent").load(doLint());
+            }
+        </script>
+    </head>
+    <body>
+        <h1>TransLint</h1>
+        <form id="testForm">
+            URL:<input type="text" id="urlField">
+        </form>
+        <button value="test" onClick="testURL();">test</button>
+        <hr />
+        <iframe id="lintContent" src="" style="width:100%; height:100%"></iframe>
+    </body>
+
+</html>
