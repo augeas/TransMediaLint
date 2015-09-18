@@ -3,10 +3,10 @@ from itertools import chain
 import re
 from rules import regexRules
 
-Annotation = namedtuple('Annotation', ['start','end','tag'])
+Annotation2 = namedtuple('Annotation', ['start','end','tag'])
 
-def getAnotations(rule,doc):
-    return [Annotation(*[i for i in chain(match.span(),(rule.tag,))]) for match in re.finditer(rule.rule,doc)]
+def getAnnotations(rule,doc):
+    return [Annotation2(*[i for i in chain(match.span(),(rule.tag,))]) for match in re.finditer(rule.rule,doc)]
 
 def annotatedDoc(doc,annotations):
     pointer = 0
@@ -19,17 +19,30 @@ def annotatedDoc(doc,annotations):
     yield doc[pointer:]
 
 def lintify(doc):
-    annotations = sorted(chain(*[getAnotations(rule,doc) for rule in regexRules]),key=lambda x: x.start)
+    annotations = sorted(chain(*[getAnnotations(rule,doc) for rule in regexRules]),key=lambda x: x.start)
     newDoc = ''.join([chunk for chunk in annotatedDoc(doc,annotations)])
-    
+
     #print newDoc
-    
+
     return len(annotations), annotations, newDoc
 
 
+Annotation = namedtuple('Annotation', ['what', 'where', 'why'])
 
+def annotate(text):
 
+    issues_list = []
 
+    for rule in regexRules:
+        for match in re.finditer(rule.rule, text):
 
+            print match.group()
 
+            print match.span()[0]
+
+            issues_list.append(
+                Annotation(match.group(), match.span()[0], rule.tag)
+            )
+
+    return issues_list
 
