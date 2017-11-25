@@ -18,7 +18,7 @@ def annotate(doc):
             
 def get_annotations(crawler):
     source = crawler.get_object()
-    annot_source = AnnotatedSource.objects.get_or_create(source=source)
+    annot_source, created = AnnotatedSource.objects.get_or_create(source=source)
     articles = Article.objects.filter(date_retrieved__gt=annot_source.last_updated)
     annotated_articles = filter(lambda x: len(x[1])> 0, ((art, list(annotate(art.text()))) for art in articles))
     for article, annotations in annotated_articles:

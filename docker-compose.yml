@@ -6,10 +6,19 @@ services:
     ports:
      - "8983:8983"
     volumes:
-      - data:/opt/solr/server/solr/mycores
+      - solr_data:/opt/solr/server/solr/mycores
     entrypoint:
       - docker-entrypoint.sh
       - solr-precreate
       - articles
+  db:
+    container_name: tml_pg
+    image: postgres
+    ports:
+    - "5432:5432"
+    volumes:
+    - pg_data:/var/lib/postgresql/data
+      
 volumes:
-  data:
+  solr_data:
+  pg_data:

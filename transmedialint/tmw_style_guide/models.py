@@ -13,7 +13,7 @@ annotation_type_choices = (('OFF','offensive'), ('INAC','inaccurate'), ('INAP','
 class Annotation(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     text = models.CharField(max_length=256)
-    tag = models.CharField(max_length=5, choices = annotation_type_choices)
+    tag = models.CharField(max_length=32, choices = annotation_type_choices)
     label = models.CharField(max_length=64)
     position = models.IntegerField()
     
