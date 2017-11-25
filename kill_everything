@@ -1,0 +1,3 @@
+#!/bin/sh
+docker volume rm $1 2>&1 >/dev/null | grep -o '\[.*]' | grep -o '[a-zA-Z0-9]*' | xargs docker rm
+docker volume rm $1
