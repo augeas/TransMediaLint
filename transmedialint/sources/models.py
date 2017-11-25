@@ -1,0 +1,51 @@
+from bs4 import BeautifulSoup
+
+from django.db import models
+from django.utils import timezone as localtimezone
+
+class Source(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    title = models.CharField(max_length=32, unique=True)
+    slug = models.SlugField(max_length=32)
+    last_scraped = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
+    region = models.CharField(max_length=32)
+    city = models.CharField(max_length=32)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.slug
+
+class Author(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField(max_length=64, unique=True)
+    
+
+def article_directory_path(instance, filename):
+    return '/'.join(['article_dump', instance.source.name, str(instance.date_published.year), str(instance.date_published.month), filename])
+
+class Article(models.Model):
+    title = models.CharField(max_length=256)
+    author = models.ManyToManyField(Author)
+    source = models.ForeignKey(Source, on_delete=models.CASCADE)
+    url = models.CharField(max_length=256, unique=True)
+    slug = models.SlugField(max_length=256)
+    date_published = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
+    date_retrieved = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))    
+    page = models.FileField(upload_to=article_directory_path)
+    broken = models.BooleanField(default=False)
+
+    def clean_strings(self):
+        soup = BeautifulSoup(self.page.read(),'html5lib')
+        for tag in soup(['script','img','style']):
+            tag.extract()
+        yield from soup.stripped_strings
+        
+    def text(self):
+        return '\n'.join(self.clean_strings())
+    
+    def __str__(self):
+        return self.slug
+    
+    class Meta:
+        ordering = ('-date_published',)
+        
