@@ -1,4 +1,5 @@
 from django.db.models import Count
+from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import render
 
@@ -28,10 +29,20 @@ class AnnotationLabels(generics.ListCreateAPIView):
     serializer_class = serializers.CountedAnnotSerializer
     http_method_names = ['get']
 
+class AuthorFilter(filters.FilterSet):
+    source = filters.CharFilter(name='article__source__slug', lookup_expr='iexact')
+
+    class Meta:
+        model = Author
+        fields = ('source',)
+
 class WorstAuthors(generics.ListCreateAPIView):   
     queryset = Author.objects.annotate(articles=Count('article')).annotate(
-        count=Count('article__annotation')).order_by('-count') 
+        annots=Count('article__annotation')).order_by('-annots') 
     serializer_class = serializers.RatedAuthorSerializer
+    filter_backends = (DjangoFilterBackend, )
+    #filter_fields = ('article__source__slug',)
+    filter_class = AuthorFilter
     http_method_names = ['get']
 
 #Article.objects.filter(annotation__label='born a (wom)an')

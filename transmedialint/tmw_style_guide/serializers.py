@@ -2,8 +2,8 @@ from rest_framework import serializers
 
 from django.db.models import Count
 
-from sources.models import Article, Author
-from sources.serializers import AuthorSerializer, SourceSerializer
+from sources.models import Article, Author, Source
+from sources.serializers import AuthorSerializer, SourceSerializer,  ArticleSerializer
 
 from .models import Annotation
 
@@ -30,9 +30,10 @@ class CountedAnnotSerializer(serializers.ModelSerializer):
         fields = ('count', 'label', 'tag')
 
 class RatedAuthorSerializer(serializers.ModelSerializer):
-    count = serializers.IntegerField()
+    annots = serializers.IntegerField()
     articles = serializers.IntegerField()
+    article = ArticleSerializer(read_only=True, many=True)
     
     class Meta:
         model = Author
-        fields = ('articles', 'count', 'name', 'slug')
+        fields = ('articles', 'annots', 'name', 'slug', 'article')    
