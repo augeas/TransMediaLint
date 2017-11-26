@@ -16,9 +16,6 @@ class Crawler(object):
 
     solr_url = 'http://localhost:8983/solr/articles/update/extract'
     
-    def __init__(self):
-        pass
-    
     @classmethod
     def get_slug(cls):
         return slugify(cls.title)
@@ -30,17 +27,22 @@ class Crawler(object):
             val = item[key]
             if val not in seenit:
                 seenit.add(val)
-                yield item
+                yield 
     
     @staticmethod
     def capital_name(name):
-        return ' '.join([wrd.capitalize() for wrd in name.split()])
-    
+        return ' '.join(['-'.join([barrel.capitalize() for barrel in chunk.split('-')])
+            for chunk in name.split()])
+
     @staticmethod
     def clean_names(names):
         names = re.split('\s[fF][oO][rR]\s',names)[0]
         names = re.split('\s[tT][oO]\s',names)[-1]
-        return re.split('[,&]|\s[aA][nN][dD]\s',names)  
+        return re.split('[,&]|\s[aA][nN][dD]\s',names)
+    
+    @staticmethod
+    def clean_date(chunk):
+        return re.match('[0-9]+',chunk).group(0).zfill(2)
 
     @staticmethod
     def fetch_author(name):
@@ -142,9 +144,6 @@ class TheSun(Crawler):
 
     timezone = pytz.timezone('Europe/London')
     title = 'The Sun'
-
-    def __init__(self):
-        pass
     
     @staticmethod
     def query_term(term,page=1):
@@ -185,7 +184,7 @@ class TheSun(Crawler):
 
         try:
             date_string = soup.find('div',attrs={'class':'article__published'}).text
-            day = re.match('[0-9+]',date_string).group(0).zfill(2)
+            day = cls.clean_date(date_string)
             date_chunks = ' '.join([day] + re.split('[\s,]+',date_string)[1:])
             ref['date_published'] = cls.timezone.localize(datetime.strptime(date_chunks,'%d %B %Y %I:%M %p'))
         except:
@@ -194,3 +193,46 @@ class TheSun(Crawler):
             
         return ref
     
+class TheDailyMail(Crawler):
+
+    timezone = pytz.timezone('Europe/London')
+    title = 'The Daily Mail'
+   
+    @classmethod
+    def parse_date(cls,soup):
+        date_chunks = soup.find('h4', attrs={'class':'sch-res-info'}).text.split()[-5:]
+        date_chunks[1] = cls.clean_date(date_chunks[1])
+        date_chunks[3] = ':'.join(map(lambda c: c.zfill(2), date_chunks[3].split(':')))
+        date_string = ' '.join(date_chunks)
+        return cls.timezone.localize(datetime.strptime(date_string,'%B %d %Y, %I:%M:%S %p'))     
+    
+    @classmethod
+    def query_pipe(cls,terms):
+        phrase = '+or+'.join(terms)
+        
+        field_getters = {'title':lambda s: s.find('h3', attrs={'class':'sch-res-title'}).text,
+            'author': lambda s: s.find('h4', attrs={'class':'sch-res-info'}).find('a').text,
+            'url': lambda s: ''.join(['http://www.dailymail.co.uk',
+            s.find('h3', attrs={'class':'sch-res-title'}).find('a')['href']]),
+            'date_published': cls.parse_date}
+        
+        while True:
+            offset, size = yield 
+            url = '?'.join(['http://www.dailymail.co.uk/home/search.html',
+                'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'.format(
+                offset, size, phrase)])
+            soup = BeautifulSoup(requests.get(url).text,'html5lib')
+            results = soup.find_all('div', attrs={'class':'sch-result'})
+            yield [{k:f(r) for k,f in field_getters.items()} for r in results]    
+ 
+    @classmethod
+    def query_stream(cls,terms,page_size=50):
+        page = itertools.count(0)
+        pipe = cls.query_pipe(terms)
+        next(pipe)
+        results = pipe.send((next(page)*page_size,page_size))
+        while len(results) > 0:
+            yield from results
+            next(pipe)
+            results = pipe.send((next(page)*page_size,page_size))
+            
