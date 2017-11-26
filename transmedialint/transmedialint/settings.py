@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'sources.apps.SourcesConfig',
     'tmw_style_guide.apps.TmwStyleGuideConfig',
     'rest_framework',
+    'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,7 +45,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 }
 
 MIDDLEWARE = [
