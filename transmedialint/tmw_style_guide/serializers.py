@@ -14,7 +14,7 @@ class LintedArticleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        exclude = ('id', 'page', 'broken')
+        exclude = ('id', 'page', 'preview', 'broken')
         
     def get_annotation_count(self, obj):
         annot_query = Annotation.objects.filter(article=obj).values('tag').annotate(count=Count('tag'))

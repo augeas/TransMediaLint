@@ -43,6 +43,7 @@ class Article(models.Model):
         for tag in soup(['script','img','style']):
             tag.extract()
         yield from soup.stripped_strings
+        self.page.close()
         
     def text(self):
         return '\n'.join(self.clean_strings())

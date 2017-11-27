@@ -79,46 +79,47 @@ class Crawler(object):
 
     @classmethod
     def get_article(cls,ref,author_getter,source):
-        doc = requests.get(ref['url']).text
-        ref['date_retrieved'] = localtimezone.now()
-        soup = BeautifulSoup(doc,'html5lib')
-        ref.update(cls.extract_article(soup))
-        if not ref['date_published']:
-            ref['date_published'] = cls.timezone.localize(datetime.combine(ref['date'], datetime.min.time()))
-        fields = {k:ref[k] for k in ['title','url','date_published','date_retrieved']}
-        fields['broken'] = ref.get('broken',False)
-        fields['source'] = source
         slug = slugify(ref['title'])
-        fields['slug'] = slug
-        
         try:
             art = Article.objects.get(url=ref['url'])
         except:
             art = False
         
-        if not art:
-            art = Article(**fields)
-            art.page.save(slug,ContentFile(doc),save=True)
-            art.preview.save(slug,ContentFile(ref['preview']),save=True)
-            next(author_getter)
-            for author in author_getter.send(ref['author']):
-                art.author.add(author)
-            art.save()
-            solr_fields = {}
-            solr_fields['literal.id'] = art.id
-            solr_fields['literal.author'] = ref['author']
-            solr_fields['literal.title'] = art.title
-            solr_fields['literal.source'] = cls.__name__
-            solr_fields['literal.url'] = art.url
-            solr_fields['literal.timestamp'] = ref['date_published'].timestamp()
-            solr_fields['commitWithin'] = '2000'        
-            solr_files = {'file': ('article.html', doc)}
-            requests.post(cls.solr_url, data=solr_fields, files=solr_files)
+        if art:
+            print('skipped '+slug)
+            return False
+            
+        doc = requests.get(ref['url']).text
+        ref['date_retrieved'] = localtimezone.now()
+        soup = BeautifulSoup(doc,'html5lib')
+        ref.update(cls.extract_article(soup,ref))
+        fields = {k:ref[k] for k in ['title','url','date_published','date_retrieved']}
+        fields['broken'] = ref.get('broken',False)
+        fields['source'] = source
+        fields['slug'] = slug
+        
+        art = Article(**fields)
+        art.page.save(slug,ContentFile(doc),save=True)
+        art.preview.save(slug,ContentFile(ref['preview']),save=True)
+        next(author_getter)
+        for author in author_getter.send(ref['author']):
+            art.author.add(author)
+        art.save()
+        
+        solr_fields = {}
+        solr_fields['literal.id'] = art.id
+        solr_fields['literal.author'] = ref['author']
+        solr_fields['literal.title'] = art.title
+        solr_fields['literal.source'] = cls.__name__
+        solr_fields['literal.url'] = art.url
+        solr_fields['literal.timestamp'] = ref['date_published'].timestamp()
+        solr_fields['commitWithin'] = '2000'        
+        solr_files = {'file': ('article.html', doc)}
+        requests.post(cls.solr_url, data=solr_fields, files=solr_files)
 
-            print('saved '+slug)
-        else:
-             print('skipped '+slug)
-             
+        print('saved '+slug)
+
+        return True
 
     @classmethod
     def date_last_scraped(cls):
@@ -176,31 +177,31 @@ class TheSun(Crawler):
         yield from cls.dedupe('url',cls.query_all_terms(terms))
 
     @classmethod
-    def extract_article(cls,soup):
-        ref = {}
+    def extract_article(cls,soup,ref):
+        fields = {}
         try:
-            ref['title'] = soup.find('h1',attrs={'class':'article__headline'}).text
+            fields['title'] = soup.find('h1',attrs={'class':'article__headline'}).text
         except:
-            ref['title'] = cls.title
-            ref['broken'] = True
+            fields['title'] = cls.title
+            fields['broken'] = True
         
         try:
             author_span = soup.find('span',attrs={'class':'article__author-name theme__copy-color'}).text
-            ref['author'] = ' '.join(author_span.split()[1:]).split(',')[0]
+            fields['author'] = ' '.join(author_span.split()[1:]).split(',')[0]
         except:
-            ref['author'] = cls.title
-            ref['broken'] = True
+            fields['author'] = cls.title
+            fields['broken'] = True
 
         try:
             date_string = soup.find('div',attrs={'class':'article__published'}).text
             day = cls.clean_date(date_string)
             date_chunks = ' '.join([day] + re.split('[\s,]+',date_string)[1:])
-            ref['date_published'] = cls.timezone.localize(datetime.strptime(date_chunks,'%d %B %Y %I:%M %p'))
+            fields['date_published'] = cls.timezone.localize(datetime.strptime(date_chunks,'%d %B %Y %I:%M %p'))
         except:
-            ref['date_published'] = False
-            ref['broken'] = True
+            fields['date_published'] = cls.timezone.localize(datetime.combine(ref['date'], datetime.min.time()))
+            fields['broken'] = True
             
-        return ref
+        return fields
     
 class TheDailyMail(Crawler):
 
@@ -223,8 +224,16 @@ class TheDailyMail(Crawler):
     
     @classmethod
     def render_item(cls,item):
-        rendered = {k:f(item) for k,f in cls.field_getters.items()}
-        rendered['date_published'] = cls.parse_date(item)
+        rendered = {}
+        for k,f in cls.field_getters.items():
+            try:
+                rendered[k] = f(item)
+            except:
+                rendered['broken'] = True
+        try:
+            rendered['date_published'] = cls.parse_date(item)
+        except:
+            rendered['broken'] = True
         return rendered
     
     @classmethod
@@ -238,18 +247,31 @@ class TheDailyMail(Crawler):
             soup = BeautifulSoup(requests.get(url).text,'html5lib')
             results = soup.find_all('div', attrs={'class':'sch-result'})
             yield [cls.render_item(r) for r in results]    
- 
-#    @classmethod
-#    def query_stream(cls,terms,page_size=50):
-#        page = itertools.count(0)
-#        pipe =  cls.query_pipe(terms)
-#        next(pipe)
-#        results = pipe.send((next(page)*page_size,page_size))
-#        while len(results) > 0:
-#            yield from results
-#            next(pipe)
-#            results = pipe.send((next(page)*page_size,page_size))
 
+    @classmethod
+    def extract_article(cls,soup,ref):
+        fields = {}
+        
+        for k,f in {'title':lambda s: s.find('div',attrs={'id':'js-article-text'}).find('h1').text,
+            'author': lambda s: s.find('p',attrs={'class':'author-section'}).find('a').text}.items():
+            if not ref.get(k,False):
+                try:
+                    fields[k] = f(soup)
+                except:
+                    fields[k] = cls.title
+                    fields['broken'] = True
+                    
+        if not ref.get('date_published',False):
+            try:
+                date_string = ' '.join(soup.find('span',
+                    attrs={'class':'article-timestamp-published'}).text.split()[-4:])
+                fields['date_published'] = cls.timezone.localize(
+                    datetime.strptime(date_string,'%H:%M, %d %B %Y'))
+            except:
+                pass
+
+        return fields
+            
     @classmethod
     def query(cls,terms):
         last_scraped = cls.get_object().last_scraped

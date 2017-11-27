@@ -1,0 +1,10 @@
+bs4
+django
+django-filter
+djangorestframework
+html5lib
+IPython
+psycopg2cffi
+pytz
+requests
+urllib3
