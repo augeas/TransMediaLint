@@ -23,6 +23,9 @@ class Author(models.Model):
 def article_directory_path(instance, filename):
     return '/'.join(['article_dump', instance.source.name, str(instance.date_published.year), str(instance.date_published.month), filename])
 
+def preview_directory_path(instance, filename):
+    return '/'.join(['article_dump', instance.source.name, 'previews', str(instance.date_published.year), str(instance.date_published.month), filename])
+
 class Article(models.Model):
     title = models.CharField(max_length=256)
     author = models.ManyToManyField(Author)
@@ -32,6 +35,7 @@ class Article(models.Model):
     date_published = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
     date_retrieved = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))    
     page = models.FileField(upload_to=article_directory_path)
+    preview = models.FileField(upload_to=preview_directory_path)
     broken = models.BooleanField(default=False)
 
     def clean_strings(self):

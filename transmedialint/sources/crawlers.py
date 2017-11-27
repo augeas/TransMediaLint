@@ -27,7 +27,7 @@ class Crawler(object):
             val = item[key]
             if val not in seenit:
                 seenit.add(val)
-                yield 
+                yield item 
     
     @staticmethod
     def capital_name(name):
@@ -74,6 +74,10 @@ class Crawler(object):
             yield [old if old else new for old,new in zip(existing,created)]
 
     @classmethod
+    def extract_article(cls, junk):
+        return {}
+
+    @classmethod
     def get_article(cls,ref,author_getter,source):
         doc = requests.get(ref['url']).text
         ref['date_retrieved'] = localtimezone.now()
@@ -95,6 +99,7 @@ class Crawler(object):
         if not art:
             art = Article(**fields)
             art.page.save(slug,ContentFile(doc),save=True)
+            art.preview.save(slug,ContentFile(ref['preview']),save=True)
             next(author_getter)
             for author in author_getter.send(ref['author']):
                 art.author.add(author)
@@ -145,14 +150,18 @@ class TheSun(Crawler):
     timezone = pytz.timezone('Europe/London')
     title = 'The Sun'
     
-    @staticmethod
-    def query_term(term,page=1):
+    @classmethod
+    def render_item(cls,item):
+        return {'teaser':item.find('p',attrs={'class':'teaser__subdeck'}).text.strip(),
+            'date':datetime.strptime(item.find('div', attrs={'class':'search-date'}).text,'%d %B %Y').date(),
+            'url':item.find('a')['href'], 'preview':str(item)}
+    
+    @classmethod
+    def query_term(cls,term,page=1):
         query_url = 'https://www.thesun.co.uk/page/'+str(page)+'/?s='+term
         soup = BeautifulSoup(requests.get(query_url).text,'html5lib')
         results = soup.find_all('div', attrs={'class':'teaser-item--search'})
-        return [{'teaser':item.find('p',attrs={'class':'teaser__subdeck'}).text.strip(),
-            'date':datetime.strptime(item.find('div', attrs={'class':'search-date'}).text,'%d %B %Y').date(),
-            'url':item.find('a')['href']} for item in results]
+        return [cls.render_item(item) for item in results]
         
     @classmethod
     def query_all_terms(cls,terms):
@@ -198,6 +207,12 @@ class TheDailyMail(Crawler):
     timezone = pytz.timezone('Europe/London')
     title = 'The Daily Mail'
    
+    field_getters = {'title':lambda s: s.find('h3', attrs={'class':'sch-res-title'}).text,
+        'author': lambda s: s.find('h4', attrs={'class':'sch-res-info'}).find('a').text,
+        'url': lambda s: ''.join(['http://www.dailymail.co.uk',
+        s.find('h3', attrs={'class':'sch-res-title'}).find('a')['href']]),
+        'preview':lambda s: str(s)}
+   
     @classmethod
     def parse_date(cls,soup):
         date_chunks = soup.find('h4', attrs={'class':'sch-res-info'}).text.split()[-5:]
@@ -207,32 +222,38 @@ class TheDailyMail(Crawler):
         return cls.timezone.localize(datetime.strptime(date_string,'%B %d %Y, %I:%M:%S %p'))     
     
     @classmethod
-    def query_pipe(cls,terms):
+    def render_item(cls,item):
+        rendered = {k:f(item) for k,f in cls.field_getters.items()}
+        rendered['date_published'] = cls.parse_date(item)
+        return rendered
+    
+    @classmethod
+    def query_chunks(cls,terms,page_size=50):
         phrase = '+or+'.join(terms)
-        
-        field_getters = {'title':lambda s: s.find('h3', attrs={'class':'sch-res-title'}).text,
-            'author': lambda s: s.find('h4', attrs={'class':'sch-res-info'}).find('a').text,
-            'url': lambda s: ''.join(['http://www.dailymail.co.uk',
-            s.find('h3', attrs={'class':'sch-res-title'}).find('a')['href']]),
-            'date_published': cls.parse_date}
-        
+        offset = (page_size * page for page in itertools.count(0))
         while True:
-            offset, size = yield 
             url = '?'.join(['http://www.dailymail.co.uk/home/search.html',
                 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'.format(
-                offset, size, phrase)])
+                next(offset), page_size, phrase)])
             soup = BeautifulSoup(requests.get(url).text,'html5lib')
             results = soup.find_all('div', attrs={'class':'sch-result'})
-            yield [{k:f(r) for k,f in field_getters.items()} for r in results]    
+            yield [cls.render_item(r) for r in results]    
  
+#    @classmethod
+#    def query_stream(cls,terms,page_size=50):
+#        page = itertools.count(0)
+#        pipe =  cls.query_pipe(terms)
+#        next(pipe)
+#        results = pipe.send((next(page)*page_size,page_size))
+#        while len(results) > 0:
+#            yield from results
+#            next(pipe)
+#            results = pipe.send((next(page)*page_size,page_size))
+
     @classmethod
-    def query_stream(cls,terms,page_size=50):
-        page = itertools.count(0)
-        pipe = cls.query_pipe(terms)
-        next(pipe)
-        results = pipe.send((next(page)*page_size,page_size))
-        while len(results) > 0:
-            yield from results
-            next(pipe)
-            results = pipe.send((next(page)*page_size,page_size))
-            
+    def query(cls,terms):
+        last_scraped = cls.get_object().last_scraped
+        chunker = itertools.takewhile(lambda c: len(c) > 0, cls.query_chunks(terms))
+        items = itertools.chain.from_iterable(chunker)
+        yield from itertools.takewhile(lambda i: i['date_published'] >= last_scraped,items)
+        
