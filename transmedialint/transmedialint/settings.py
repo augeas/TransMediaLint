@@ -67,10 +67,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'transmedialint.urls'
 
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [PROJECT_PATH + '/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -5,12 +5,14 @@ import re
 offensive = 'offensive'
 inaccurate = 'inaccurate'
 inappropriate = 'inappropriate'
-inappropriate_medical = 'inappropriate-medical'
+inappropriate_medical = 'inappropriate_medical'
 
+rule_tags = [offensive, inaccurate, inaccurate, inappropriate_medical]
 
-tags = {offensive:'term which many trans people find offensive',
+tag_details = {offensive:'term which many trans people find offensive',
         inaccurate:'inaccurate usage',
-        inappropriate:'Many trans and intersex people consider this term inappropriate'}
+        inappropriate:'many trans and intersex people consider this term inappropriate',
+        inappropriate_medical:'medical/legal term that many trans and intersex people consider inappropriate'}
 
 RegRule = namedtuple('RegRule', ['rule', 'tag', 'label'])
 

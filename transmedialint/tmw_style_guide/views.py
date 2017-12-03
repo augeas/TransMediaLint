@@ -41,11 +41,7 @@ class WorstAuthors(generics.ListCreateAPIView):
         annots=Count('article__annotation')).order_by('-annots') 
     serializer_class = serializers.RatedAuthorSerializer
     filter_backends = (DjangoFilterBackend, )
-    #filter_fields = ('article__source__slug',)
+    filter_fields = ('article__source__slug',)
     filter_class = AuthorFilter
     http_method_names = ['get']
-
-#Article.objects.filter(annotation__label='born a (wom)an')
-#a=Author.objects.filter(article__source__slug='the-sun').annotate(count=Count('article__annotation
-#     ...: ')).order_by('-count')
  
