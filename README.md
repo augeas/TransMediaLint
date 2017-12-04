@@ -7,11 +7,16 @@ and [start-up culture](https://pbs.twimg.com/media/CfNJTAHWAAAik5I.png). I wonde
 [Trans Media Watch](http://www.transmediawatch.org/)
 [style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf) could be automated.
 In the end, most of it could be applied with simple
-[regular expressions](https://pbs.twimg.com/media/Cr7mS_OWcAA7Hzt.jpg), and I thought little of for a
+[regular expressions](https://pbs.twimg.com/media/Cr7mS_OWcAA7Hzt.jpg), and I thought little of it for a
 couple of years.
 
-Given the way of the world, I've decided to revive it, this time as a web-app based on the
-Django Rest Framework, Postgres, Solr and Pandas/Bokeh.
-
+Given the state of the world, I've decided to revive it, this time as a web-app based on the
+Django Rest Framework, Postgres, Solr and Pandas/Bokeh. So far,it seems work on PyPy reasonably well.
+The idea is that it crawls and annotates media websites automatically, and the user can explore and
+search the results. Let us consider The Sun newspaper's website: 
 
 ![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles.png)
+
+What about the Daily Mail?
+
+![rated articles from The Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_mail_articles.png)
