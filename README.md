@@ -63,3 +63,15 @@ I've added it. I'll leave it to others to
 
 ## To Do:
 
+Before anyone else moderately technical wastes time on this it needs:
+
+- [ ] the Django app to be properly Dockerised
+- [ ] automated scraping and annotating via Celery
+- [ ] cacheing with Redis
+
+Before it's fit for *civilians* it needs:
+
+- [ ] a (probably) AngularJS front-end to consume the API
+- [ ] loads more web-crawlers for more sources
+- [ ] a search API to put Solr to good use
+- [ ] shoving into a VirtualBox appliance for the hard-of-Docker.
