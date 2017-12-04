@@ -8,3 +8,6 @@ psycopg2cffi
 pytz
 requests
 urllib3
+numpy
+bokeh
+pandas

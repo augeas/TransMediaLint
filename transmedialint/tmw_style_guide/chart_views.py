@@ -64,7 +64,7 @@ def rated_article_chart(request):
     fig.x_range.range_padding = 0.1
     fig.xgrid.grid_line_color = None
     fig.axis.minor_tick_line_color = None
-    fig.xaxis.axis_label = 'date published'
+    fig.xaxis.axis_label = 'month published'
     fig.xaxis.axis_label_text_font_size = '20pt'
     fig.xaxis.major_label_text_font_size = '12pt'
     fig.yaxis.axis_label = 'Number of articles'

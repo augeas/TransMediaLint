@@ -29,6 +29,13 @@ class AnnotationLabels(generics.ListCreateAPIView):
     serializer_class = serializers.CountedAnnotSerializer
     http_method_names = ['get']
 
+class AnnotationList(generics.ListCreateAPIView):
+    queryset = Annotation.objects.all()
+    serializer_class = serializers.AnnotSerializer
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = ('tag', 'article__slug', 'article__id')
+    http_method_names = ['get']
+
 class AuthorFilter(filters.FilterSet):
     source = filters.CharFilter(name='article__source__slug', lookup_expr='iexact')
 

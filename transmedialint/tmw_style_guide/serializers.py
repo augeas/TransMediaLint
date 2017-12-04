@@ -14,13 +14,19 @@ class LintedArticleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        exclude = ('id', 'page', 'preview', 'broken')
+        exclude = ('page', 'preview', 'broken')
         
     def get_annotation_count(self, obj):
         annot_query = Annotation.objects.filter(article=obj).values('tag').annotate(count=Count('tag'))
         counts = {annot['tag']:annot['count'] for annot in annot_query}
         counts['total'] = sum(counts.values())
         return counts
+
+class AnnotSerializer(serializers.ModelSerializer):
+    
+        class Meta:
+            model = Annotation
+            exclude = ('id', 'article')
     
 class CountedAnnotSerializer(serializers.ModelSerializer):
     count = serializers.IntegerField()
