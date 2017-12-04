@@ -15,7 +15,21 @@ Django Rest Framework, Postgres, Solr and Pandas/Bokeh. So far,it seems work on 
 The idea is that it crawls and annotates media websites automatically, and the user can explore and
 search the results. Let us consider The Sun newspaper's website: 
 
+```http://localhost:8000/charts/rated_articles?source=the-sun```
+
+The web-crawler searches the Sun's website for articles containing the terms "transgender" or "transsexual",
+which are then annotated by a set of
+[regexes](https://github.com/augeas/TransMediaLint/blob/master/transmedialint/tmw_style_guide/rules.py).
+They are aggregated by month of publication, their frequencies are plotted using Bokeh:
+
 ![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles.png)
+
+Articles with no annotations are plotted in green, but of course this doesn't mean that none of them are
+problematic. Those with potentially inappropriate commonly used medical or legal terms are plotted in
+yellow, inaccurate, inappropriate or downright offensive terms are plotted in red. Hopefully, this is a
+fair representation of the
+[style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf), that amplifies it rather
+than speaking for it.
 
 What about the Daily Mail?
 
