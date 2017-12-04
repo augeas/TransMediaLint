@@ -30,16 +30,36 @@ problematic. Those with potentially inappropriate commonly used medical or legal
 yellow, inaccurate, inappropriate or downright offensive terms are plotted in red. Hopefully, this is a
 fair representation of the
 [style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf), that amplifies it rather
-than speaking for it.
+than speaking for it. One of the things to do reasonably shortly would be to try
+[topic-modelling](https://radimrehurek.com/gensim/). Will the topics of poorly-rated
+articles be more puerile and tawdry? How will topics differ between sources?
 
 What about the Daily Mail?
 
+```http://localhost:8000/charts/rated_articles?source=the-daily-mail```
+
 ![rated articles from The Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_mail_articles.png)
+
+It's *obsessed*, and getting more so. The absolute numbers of bad articles remain
+roughly constant, even though they're getting proportionally fewer. We can use the
+REST API to discover that the
+[very worst article](http://www.dailymail.co.uk/news/article-2921528/The-man-s-TWO-sex-changes-Incredible-story-Walt-Laura-REVERSED-operation-believes-surgeons-quick-operate.html)
+in terms of the number of annotations is from the Mail:
 
 ```http://localhost:8000/worstlintedarticles/```
 
 ![worst article so far](https://github.com/augeas/TransMediaLint/raw/master/img/worst_mail.png)
 
+We can also find its annotations:
+
 ```http://localhost:8000/annotations/?article__id=717```
 
 ![worst article annotations](https://github.com/augeas/TransMediaLint/blob/master/img/worst_mail_annots.png)
+
+(Note that the term "transgenderism" isn't in the original
+[style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf), but
+I've added it. I'll leave it to others to
+[explain why it shouldn't be used](https://www.quora.com/Is-transgenderism-the-correct-word-to-use-in-regards-to-trans-people).)
+
+## To Do:
+
