@@ -24,6 +24,7 @@ They are aggregated by month of publication, their frequencies are plotted using
 
 ![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles.png)
 
+It seems to be getting busier.
 Articles with no annotations are plotted in green, but of course this doesn't mean that none of them are
 problematic. Those with potentially inappropriate commonly used medical or legal terms are plotted in
 yellow, inaccurate, inappropriate or downright offensive terms are plotted in red. Hopefully, this is a
@@ -34,3 +35,11 @@ than speaking for it.
 What about the Daily Mail?
 
 ![rated articles from The Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_mail_articles.png)
+
+```http://localhost:8000/worstlintedarticles/```
+
+![worst article so far](https://github.com/augeas/TransMediaLint/raw/master/img/worst_mail.png)
+
+```http://localhost:8000/annotations/?article__id=717```
+
+![worst article annotations](https://github.com/augeas/TransMediaLint/blob/master/img/worst_mail_annots.png)
