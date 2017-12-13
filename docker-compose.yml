@@ -18,7 +18,17 @@ services:
     - "5432:5432"
     volumes:
     - pg_data:/var/lib/postgresql/data
-      
+  transmedialint:
+    build: .
+    command: /bin/bash -c "source ../tml_pypy/bin/activate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+    - "8000:8000"
+    volumes:
+      - tml_articles:/transmedialint/article_dump
+    depends_on:
+      - solr
+      - db
 volumes:
   solr_data:
   pg_data:
+  tml_articles:
