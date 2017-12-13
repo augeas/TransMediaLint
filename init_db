@@ -1,0 +1,1 @@
+docker-compose run transmedialint /bin/bash -c "source ../tml_pypy/bin/activate && python manage.py makemigrations && python manage.py migrate"

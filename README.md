@@ -61,11 +61,31 @@ We can also find its annotations:
 I've added it. I'll leave it to others to
 [explain why it shouldn't be used](https://www.quora.com/Is-transgenderism-the-correct-word-to-use-in-regards-to-trans-people).)
 
+## Getting Started
+
+If you want to play along with the story so far, first get docker-compose, and clone the repo. The containers can be pulled and built with
+the script the initializes the database. It'll take a while:
+
+```git clone https://github.com/augeas/TransMediaLint.git
+cd TransMediaLint
+sudo ./init_db```
+
+Next grab some articles and annotate them in the Django console:
+
+```sudo ./shell
+from sources.crawlers import TheSun, TheDailyMail
+TheSun.scrape(['transgender','transsexual'])
+get_annotations(TheSun)```
+
+The Daily Mail will take *ages*. Quit the shell with "Ctrl-D", then start the server with:
+
+```sudo docker-compose up```
+
 ## To Do:
 
 Before anyone else moderately technical wastes time on this it needs:
 
-- [ ] the Django app to be properly Dockerised
+- [X] the Django app to be properly Dockerised
 - [ ] automated scraping and annotating via Celery
 - [ ] cacheing with Redis
 
@@ -75,3 +95,4 @@ Before it's fit for *civilians* it needs:
 - [ ] loads more web-crawlers for more sources
 - [ ] a search API to put Solr to good use
 - [ ] shoving into a VirtualBox appliance for the hard-of-Docker.
+- [ ] .csv downloads
