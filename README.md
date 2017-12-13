@@ -63,7 +63,7 @@ I've added it. I'll leave it to others to
 
 ## Getting Started
 
-If you want to play along with the story so far, first get docker-compose, and clone the repo. The containers can be pulled and built with
+If you want to play along with the story so far, first get [docker-compose](https://docs.docker.com/compose/), and clone the repo. The containers can be pulled and built with
 the script the initializes the database. It'll take a while:
 
 ```git clone https://github.com/augeas/TransMediaLint.git
