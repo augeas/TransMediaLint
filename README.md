@@ -77,6 +77,7 @@ Next grab some articles and annotate them in the Django console:
 ```sudo ./shell
 from sources.crawlers import TheSun, TheDailyMail
 TheSun.scrape(['transgender','transsexual'])
+from tmw_style_guide.annotate import get_annotations
 get_annotations(TheSun)
 ```
 
