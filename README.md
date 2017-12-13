@@ -68,14 +68,17 @@ the script the initializes the database. It'll take a while:
 
 ```git clone https://github.com/augeas/TransMediaLint.git
 cd TransMediaLint
-sudo ./init_db```
+sudo ./init_db
+```
 
 Next grab some articles and annotate them in the Django console:
+
 
 ```sudo ./shell
 from sources.crawlers import TheSun, TheDailyMail
 TheSun.scrape(['transgender','transsexual'])
-get_annotations(TheSun)```
+get_annotations(TheSun)
+```
 
 The Daily Mail will take *ages*. Quit the shell with "Ctrl-D", then start the server with:
 
