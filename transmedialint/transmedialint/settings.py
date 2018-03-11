@@ -40,6 +40,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'sources.apps.SourcesConfig',
     'tmw_style_guide.apps.TmwStyleGuideConfig',
+    'tmw_corpus.apps.TmlCorpusConfig',
     'rest_framework',
     'django_filters',
     'django.contrib.admin',
