@@ -1,7 +1,7 @@
 
 from django.http import HttpResponse, Http404
 from django.db.models import Count
-from django.db.models.functions import Trunc
+from django.db.models.functions import ExtractMonth, Trunc
 from django.shortcuts import render_to_response
 
 from bokeh.embed import components
@@ -18,7 +18,11 @@ def groupby_month(q):
     return q.annotate(
         month=Trunc('date_published','month')).order_by('month').values('month').annotate(
             count=Count('month')).values('count','month')
-    
+
+def aggregate_month(q):
+    return q.annotate(month=ExtractMonth('date_published','month')).values('month').order_by(
+        'month').annotate(count=(Count('month')))
+
 def rated_article_chart(request):
     
     filters = {}
@@ -31,6 +35,10 @@ def rated_article_chart(request):
             except model.DoesNotExist:
                 raise Http404('{} {} does not exist.'.format(name.capitalize(), slug))
     
+    year = request.GET.get('year', False)
+    if year:
+        filters['date_published__year'] = int(year)
+                
     source = filters.get('source',False)
     if not source:
         raise Http404('No source specified')

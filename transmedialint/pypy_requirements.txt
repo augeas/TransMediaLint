@@ -12,6 +12,7 @@ gensim
 bokeh
 pandas
 spacy
+nltk
 
 
 
