@@ -1,0 +1,17 @@
+django
+django-filter
+djangorestframework
+urllib3
+requests
+bs4
+html5lib
+pytz
+IPython
+gensim
+bokeh
+pandas
+spacy
+psycopg2
+
+
+
