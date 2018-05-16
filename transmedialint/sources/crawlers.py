@@ -12,6 +12,8 @@ from django.utils.text import slugify
 
 from .models import Article, Author, Source
 
+from transmedialint.setting import GUARDIAN_API_KEY
+
 class Crawler(object):
 
     solr_url = 'http://localhost:8983/solr/articles/update/extract'
@@ -278,4 +280,25 @@ class TheDailyMail(Crawler):
         chunker = itertools.takewhile(lambda c: len(c) > 0, cls.query_chunks(terms))
         items = itertools.chain.from_iterable(chunker)
         yield from itertools.takewhile(lambda i: i['date_published'] >= last_scraped,items)
+ 
+class The Guardian(Crawler):
+     
+    timezone = pytz.timezone('Europe/London')
+    title = 'The Guardian'
+
+    @classmethod
+    def get_chunks(payload, page):
+        payload = {'q':q, 'api-key':GUARDIAN_API_KEY, }
+
+    @classmethod
+    def query_chunks(cls,terms,page_size=50):
+        q = ' OR '.join(terms)
+        payload = {'q':q, 'api-key':GUARDIAN_API_KEY, 'page-size':page_size, 'order-by':'newest',
+            'show-fields':'byline,shortUrl,body'}
+        
+     
+    @classmethod
+    def query(cls,terms):
+        last_scraped = cls.get_object().last_scraped
+        
         
