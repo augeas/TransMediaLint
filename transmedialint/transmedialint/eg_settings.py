@@ -141,4 +141,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+DEFAULT_SEARCH_TERMS = ['transgender', 'transsexual']
+
 GUARDIAN_API_KEY = ''

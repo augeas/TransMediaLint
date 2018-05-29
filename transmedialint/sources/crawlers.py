@@ -3,8 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 
 from datetime import datetime
+import dateutil.parser       
 import itertools
 import re
+import time
 
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
@@ -12,11 +14,11 @@ from django.utils.text import slugify
 
 from .models import Article, Author, Source
 
-from transmedialint.setting import GUARDIAN_API_KEY
+from transmedialint.settings import DEFAULT_SEARCH_TERMS, GUARDIAN_API_KEY
 
 class Crawler(object):
 
-    solr_url = 'http://localhost:8983/solr/articles/update/extract'
+    solr_url = 'http://tml_solr:8983/solr/articles/update/extract'
     
     @classmethod
     def get_slug(cls):
@@ -38,9 +40,10 @@ class Crawler(object):
 
     @staticmethod
     def clean_names(names):
-        names = re.split('\s[fF][oO][rR]\s',names)[0]
-        names = re.split('\s[tT][oO]\s',names)[-1]
-        return re.split('[,&]|\s[aA][nN][dD]\s',names)
+        names = re.split('\sfor\s',names, flags = re.IGNORECASE)[0]
+        names = re.split('\sin\s',names, flags = re.IGNORECASE)[0]
+        names = re.split('\sto\s',names, flags = re.IGNORECASE)[-1]
+        return re.split('[,&]|\sand\s',names, flags = re.IGNORECASE)
     
     @staticmethod
     def clean_date(chunk):
@@ -76,7 +79,7 @@ class Crawler(object):
             yield [old if old else new for old,new in zip(existing,created)]
 
     @classmethod
-    def extract_article(cls, junk):
+    def extract_article(cls, *args):
         return {}
 
     @classmethod
@@ -90,11 +93,16 @@ class Crawler(object):
         if art:
             print('skipped '+slug)
             return False
-            
-        doc = requests.get(ref['url']).text
+        
         ref['date_retrieved'] = localtimezone.now()
-        soup = BeautifulSoup(doc,'html5lib')
-        ref.update(cls.extract_article(soup,ref))
+        
+        doc = ref.get('doc',False)
+        
+        if not doc:
+            doc = requests.get(ref['url']).text
+            soup = BeautifulSoup(doc,'html5lib')
+            ref.update(cls.extract_article(soup,ref))
+            
         fields = {k:ref[k] for k in ['title','url','date_published','date_retrieved']}
         fields['broken'] = ref.get('broken',False)
         fields['source'] = source
@@ -128,7 +136,7 @@ class Crawler(object):
         return cls.get_object().last_scraped.date()
 
     @classmethod
-    def scrape(cls,terms):
+    def scrape(cls,terms=DEFAULT_SEARCH_TERMS):
         author_getter = cls.get_authors()
         this_source = cls.get_object()
         for ref in cls.query(terms):
@@ -281,14 +289,10 @@ class TheDailyMail(Crawler):
         items = itertools.chain.from_iterable(chunker)
         yield from itertools.takewhile(lambda i: i['date_published'] >= last_scraped,items)
  
-class The Guardian(Crawler):
+class TheGuardian(Crawler):
      
     timezone = pytz.timezone('Europe/London')
     title = 'The Guardian'
-
-    @classmethod
-    def get_chunks(payload, page):
-        payload = {'q':q, 'api-key':GUARDIAN_API_KEY, }
 
     @classmethod
     def query_chunks(cls,terms,page_size=50):
@@ -296,9 +300,33 @@ class The Guardian(Crawler):
         payload = {'q':q, 'api-key':GUARDIAN_API_KEY, 'page-size':page_size, 'order-by':'newest',
             'show-fields':'byline,shortUrl,body'}
         
-     
-    @classmethod
-    def query(cls,terms):
-        last_scraped = cls.get_object().last_scraped
+        def get_chunk(page):
+            params = {'page':page}
+            params.update(payload)
+            req = requests.get('https://content.guardianapis.com/search', params=params)
+            time.sleep(0.2)
+            return req.json().get('response', {})
         
+        all_chunks = map(get_chunk, itertools.count(1))
+
+        chunks = itertools.takewhile(lambda r: r.get('currentPage',1) <= r.get('pages',-1),
+            all_chunks)
+        
+        yield from map(lambda c: c['results'], chunks)
+        
+    @classmethod
+    def render_item(cls,item):
+        fields = {'title':'webTitle', 'url':'webUrl', 'preview':'webTitle'}
+        rendered = {k:item[i] for k,i in fields.items()}
+        extra_fields = {'doc':'body', 'author':'byline'}
+        rendered.update({k:item['fields'].get(i,'') for k,i in extra_fields.items()})
+        rendered['date_published'] = dateutil.parser.parse(item['webPublicationDate'])
+        return rendered
+
+    @classmethod
+    def query(cls, terms):
+        this_source = cls.get_object()
+        all_articles = itertools.chain.from_iterable(cls.query_chunks(terms))
+        all_rendered = map(cls.render_item, all_articles)
+        yield from itertools.takewhile(lambda a: a['date_published'] > this_source.last_scraped, all_rendered)
         

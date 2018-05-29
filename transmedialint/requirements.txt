@@ -12,6 +12,6 @@ bokeh
 pandas
 spacy
 psycopg2
-
+Jupyter
 
 
