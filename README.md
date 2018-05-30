@@ -70,8 +70,10 @@ fewer red annotations.
 
 ## Getting Started
 
-If you want to play along with the story so far, first get [docker-compose](https://docs.docker.com/compose/), and clone the repo. The containers can be pulled and built with
-the script the initializes the database. It'll take a while:
+If you want to play along with the story so far, first get [docker-compose](https://docs.docker.com/compose/), and clone the repo.
+You'll need to rename ["eg_settings.py"](https://github.com/augeas/TransMediaLint/blob/master/transmedialint/transmedialint/eg_settings.py)
+to "settings.py" and edit it to add a [Guardian API key](https://open-platform.theguardian.com/access/).
+The containers can be pulled and built with the script the initializes the database. It'll take a while:
 
 ```git clone https://github.com/augeas/TransMediaLint.git
 cd TransMediaLint
