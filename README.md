@@ -42,7 +42,7 @@ What about the Daily Mail?
 
 It's *obsessed*, and getting more so. The absolute numbers of bad articles remain
 roughly constant, even though they're getting proportionally fewer. We can use the
-REST API to discover that the
+REST API to discover that one of the
 [very worst article](http://www.dailymail.co.uk/news/article-2921528/The-man-s-TWO-sex-changes-Incredible-story-Walt-Laura-REVERSED-operation-believes-surgeons-quick-operate.html)
 in terms of the number of annotations is from the Mail:
 
@@ -61,6 +61,13 @@ We can also find its annotations:
 I've added it. I'll leave it to others to
 [explain why it shouldn't be used](https://www.quora.com/Is-transgenderism-the-correct-word-to-use-in-regards-to-trans-people).)
 
+Here's The Guardian:
+
+![rated articles from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/rated_guardian_articles.png)
+
+The frequency of articles matching the search terms looks horribly similar to that of The Daily Mail, albeit with *somewhat*
+fewer red annotations.
+
 ## Getting Started
 
 If you want to play along with the story so far, first get [docker-compose](https://docs.docker.com/compose/), and clone the repo. The containers can be pulled and built with
@@ -72,11 +79,12 @@ sudo ./init_db
 ```
 
 Next grab some articles and annotate them in the Django console:
+(The default search terms "transgender" and "transsexual" will be used.)
 
 
 ```sudo ./shell
 from sources.crawlers import TheSun, TheDailyMail
-TheSun.scrape(['transgender','transsexual'])
+TheSun.scrape()
 from tmw_style_guide.annotate import get_annotations
 get_annotations(TheSun)
 ```
