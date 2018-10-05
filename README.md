@@ -34,6 +34,9 @@ than speaking for it. One of the things to do reasonably shortly would be to try
 [topic-modelling](https://radimrehurek.com/gensim/). Will the topics of poorly-rated
 articles be more puerile and tawdry? How will topics differ between sources?
 
+**5/10/2018: The scraper for the Sun is broken at the moment, which is an occupational hazard of scraping. The Daily Mail
+and Guardian still work, This should be fixed shortly, and more scrapers are planned.**
+
 What about the Daily Mail?
 
 ```http://localhost:8000/charts/rated_articles?source=the-daily-mail```
@@ -70,25 +73,27 @@ fewer red annotations.
 
 ## Getting Started
 
-If you want to play along with the story so far, first get [docker-compose](https://docs.docker.com/compose/), and clone the repo.
+If you want to play along with the story so far, first get [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/), and clone the repo.
 You'll need to rename ["eg_settings.py"](https://github.com/augeas/TransMediaLint/blob/master/transmedialint/transmedialint/eg_settings.py)
 to "settings.py" and edit it to add a [Guardian API key](https://open-platform.theguardian.com/access/).
 The containers can be pulled and built with the script the initializes the database. It'll take a while:
 
-```git clone https://github.com/augeas/TransMediaLint.git
+```
+git clone https://github.com/augeas/TransMediaLint.git
 cd TransMediaLint
-sudo ./init_db
+./init_db
 ```
 
 Next grab some articles and annotate them in the Django console:
 (The default search terms "transgender" and "transsexual" will be used.)
 
 
-```sudo ./shell
-from sources.crawlers import TheSun, TheDailyMail
-TheSun.scrape()
+```
+./shell
+from sources.crawlers import TheDailyMail
+TheDailyMail.scrape()
 from tmw_style_guide.annotate import get_annotations
-get_annotations(TheSun)
+get_annotations(TheDailyMail)
 ```
 
 The Daily Mail will take *ages*. Quit the shell with "Ctrl-D", then start the server with:
