@@ -52,6 +52,10 @@ class SearchSpider(scrapy.Spider):
         title = response.css('.article__headline')[0].xpath(
             './text()').extract()[0]
 
+        teaser = response.css('.article__kicker').xpath('./text()').extract()[0]
+
+        yield {}
+
 
     
 #response.css('.teaser-anchor--search').xpath('./@href').extract()
