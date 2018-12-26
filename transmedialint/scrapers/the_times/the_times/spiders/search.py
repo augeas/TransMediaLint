@@ -14,7 +14,7 @@ class LoginSpider(scrapy.Spider):
             self.terms = '+OR+'.join(query.split())
         else:
             self.terms = None
-            
+        self.last_scraped = kwargs.get('last_scraped', None)    
         self.username = kwargs.get('username', None)
         self.password = kwargs.get('query', None)
 
@@ -28,7 +28,6 @@ class LoginSpider(scrapy.Spider):
 
     def after_login(self, response):
         if self.terms:
-            
             url = 'https://www.thetimes.co.uk/search?q={}'.format(self.terms)
             
             yield scrapy.Request(url=url, callback=self.parse_search,
@@ -36,18 +35,30 @@ class LoginSpider(scrapy.Spider):
             
             
     def parse_search(self, response):
+        next_page = response.meta['page'] + 1
+        
         results = response.css('.Item-headline').xpath('./a/@href').extract()
         urls =  ('https://www.thetimes.co.uk' + res for res in results)
         
         datespans = response.css('.Item-dateline').xpath('./text()').extract()
-        timestamps = (datetime.strptime(ds,'%A %B %d  %Y') for ds in datespans)
+        timestamps = (datetime.strptime(ds,'%A %B %d  %Y').isoformat()
+            for ds in datespans)
         
-        publications = response.css('.Item-publication').xpath(
-            './text()').extract()
+        new = list(filter(lambda u,t: t>self.last_scraped,
+            zip(urls, timestamps)))
+        
+        #publications = response.css('.Item-publication').xpath(
+        #    './text()').extract()
 
-        yield from (scrapy.Request(url=url, callback=self.parse_article,
-            meta = {})
-            for url,pub in zip(urls, publications))
+        if new:
+            yield from (scrapy.Request(url=url, callback=self.parse_article)
+            for url,t in new)
+            
+            url = 'https://www.thetimes.co.uk/search?p={}&q={}'.format(
+                next_page, self.terms)
+            
+            yield scrapy.Request(url=url, callback=self.parse_search,
+                meta={'page': next_page})
             
 
     def parse_article(self, response):
