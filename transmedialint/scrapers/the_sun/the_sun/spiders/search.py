@@ -11,13 +11,12 @@ class SearchSpider(scrapy.Spider):
             self.terms = query.split()
         else:
             self.terms = []
+        self.last_scraped = kwargs.get('last_scraped', None)
         
         
     def start_requests(self):
         urls = map;p('https://www.thesun.co.uk/?s={}'.format,
             self.terms)
-        
-        
         
         yield from (scrapy.Request(url=u, callback=self.parse,
             meta={'page': 1, 'term': t}) for u, t in zip(urls,self.terms))
@@ -26,11 +25,24 @@ class SearchSpider(scrapy.Spider):
     def parse(self, response):
         page = response.meta['page'] + 1
         
-        url = 'https://www.thesun.co.uk/page/{}/?s={}'.format(page,
-            response.meta['term'])
+        timestamps = (datetime.strptime(t, '%d %B %Y') for t in
+            response.css('.search-date').xpath('./text()').extract())
         
-        yield scrapy.Request(url=url, callback=self.parse, meta={'page': page,
-            'term': response.meta['term']})
+        urls = response.css('.teaser-anchor--search').xpath(
+            './@href').extract()
+
+        new = list(filter(lambda t,u: t>self.last_scraped,
+            zip(timestamps, urls)))
+        
+        if new:
+            yield from (scrapy.Request(url=u, callback=self.parse_article)
+                for t,u in new)
+        
+            url = 'https://www.thesun.co.uk/page/{}/?s={}'.format(page,
+                response.meta['term'])
+        
+            yield scrapy.Request(url=url, callback=self.parse,
+                meta={'page': page, 'term': response.meta['term']})
         
         
     def parse_article(self, response):
@@ -41,7 +53,8 @@ class SearchSpider(scrapy.Spider):
         day_str = ''.join(([0] + list(filter(str.isdigit,day)))[-2:])
 
         time_str = ' '.join([day_str,month,year,timespan.strip()])
-        timestamp = datetime.strptime(time_str, '%d %B %Y, %I:%M %p')
+        timestamp = datetime.strptime(
+            time_str, '%d %B %Y, %I:%M %p').isoformat()
 
         
         authorspan =  response.css('.article__author-name')[0].xpath(
@@ -52,14 +65,12 @@ class SearchSpider(scrapy.Spider):
         title = response.css('.article__headline')[0].xpath(
             './text()').extract()[0]
 
-        teaser = response.css('.article__kicker').xpath('./text()').extract()[0]
+        preview = response.css('.article__kicker').xpath('./text()').extract()[0]
 
-        yield {}
+        yield {'title': title, 'byline': authorspan, 'preview': preview,
+            'date_published':timestamp, 'content': response.text}
 
 
-    
-#response.css('.teaser-anchor--search').xpath('./@href').extract()
-#response.css('.search-date').xpath('./text()').extract()
 
 
         

@@ -38,18 +38,20 @@ class SearchSpider(scrapy.Spider):
             r['webPublicationDate']).isoformat()}} for r in  
             json_response['results'])
      
-        new_results = filter(lambda r: r['timestamp']>self.last_scraped,
-            results)
+        new_results = list(filter(lambda r: r['timestamp']>self.last_scraped,
+            results))
         
-        yield from ({'source': 'TheGuardian',
-            'title': res['fields']['headline'],
-            'byline': res['fields']['byline'],
-            'date_published': res['timestamp'],
-            'url': res['webUrl'],
-            'content': res['fields']['body']}
-            for res in new_results)
+        if new_results:
         
-        if page < json_response['pages']:
-            url = base_url.format(self.key, self.terms, page+1)
-            yield scrapy.Request(url=url, callback=self.parse) 
+            yield from ({'source': 'TheGuardian',
+                'title': res['fields']['headline'],
+                'byline': res['fields']['byline'],
+                'date_published': res['timestamp'],
+                'url': res['webUrl'],
+                'content': res['fields']['body']}
+                for res in new_results)
+        
+            if page < json_response['pages']:
+                url = base_url.format(self.key, self.terms, page+1)
+                yield scrapy.Request(url=url, callback=self.parse) 
 

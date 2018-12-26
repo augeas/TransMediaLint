@@ -1,5 +1,5 @@
 
-
+from datetime import datetime
 
 import scrapy
 
@@ -16,7 +16,7 @@ class SearchSpider(scrapy.Spider):
             self.terms = '+or+'.join(query.split())
         else:
             self.terms = None
-            
+        self.last_scraped = kwargs.get('last_scraped', None)    
             
     def start_requests(self):
         url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
@@ -24,11 +24,14 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse(self, request):
-        articles = art=response.css('.sch-res-content')
+        next_offset = request.meta.get('offset', 0)
+        
+        articles = response.css('.sch-res-content')
         anchors = articles.xpath('./h3').css('.sch-res-title').xpath(
-            './a/@href')
+            './a')
         titles = anchors.xpath('./text()').extract()
-        urls = anchors.xpath('./@href').extract()
+        urls = ('https://www.dailymail.co.uk'+u for u in
+            anchors.xpath('./@href').extract())
         
         previews = articles.css('.sch-res-preview').xpath('./text()').extract()
 
@@ -43,16 +46,30 @@ class SearchSpider(scrapy.Spider):
 
         timestamps = (datetime.strptime(t, '%B %d %Y, %I:%M:%S %p'
             ).isoformat() for t in timestr)
+        
+        meta = ({'title': title, 'url': url, 'preview': preview,
+            'byline': byline, 'date_published': timestamp} for
+            title, url, preview, byline, timestamp in
+            zip(titles, urls, previews, bylines, timestamps))
+        
+        new = filter(lambda m: m['timestamp'] > self.last_scraped, meta)
+        
+        requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
+            meta=m) for m in new]
+        
+        if requests:
+            yield from requests
+            url = '?'.join([base_url, search_args.format(
+                next_offset, 50, self.terms)])
+            yield scrapy.Request(url=url, callback=self.parse,
+                meta={'offset': next_offset})
+        
+        
+    def parse_article(self, response):
+        yield {**response.meta, **{'content': response.text}}
+        
+        
+        
 
         
      
-
-        
-        
-        
-        
-        
-  
-
-            
-            
