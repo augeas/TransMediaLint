@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for the_daily_mail project
+# Scrapy settings for the_guardian project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,19 +9,17 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'the_daily_mail'
+BOT_NAME = 'the_guardian'
 
-SPIDER_MODULES = ['the_daily_mail.spiders']
-NEWSPIDER_MODULE = 'the_daily_mail.spiders'
+SPIDER_MODULES = ['the_guardian.spiders']
+NEWSPIDER_MODULE = 'the_guardian.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'the_daily_mail (+http://www.yourdomain.com)'
+#USER_AGENT = 'the_guardian (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = False
-
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -49,13 +47,13 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'the_daily_mail.middlewares.TheDailyMailSpiderMiddleware': 543,
+#    'the_guardian.middlewares.TheGuardianSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'the_daily_mail.middlewares.TheDailyMailDownloaderMiddleware': 543,
+#    'the_guardian.middlewares.TheGuardianDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -67,7 +65,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'the_daily_mail.pipelines.TheDailyMailPipeline': 300,
+#    'the_guardian.pipelines.TheGuardianPipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
