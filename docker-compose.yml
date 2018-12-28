@@ -18,9 +18,15 @@ services:
     - "5432:5432"
     volumes:
     - pg_data:/var/lib/postgresql/data
+  scraper:
+     build:
+       dockerfile: ScraperDockerfile
+       context: .
+     ports:
+     - "6800:6800"
   transmedialint:
     build: .
-    command: /bin/bash -c "source ../tml/bin/activate && python manage.py runserver 0.0.0.0:8000"
+    command: "python manage.py runserver 0.0.0.0:8000"
     ports:
     - "8000:8000"
     volumes:

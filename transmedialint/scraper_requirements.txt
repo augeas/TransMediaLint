@@ -1,0 +1,8 @@
+python-dateutil
+django
+psycopg2cffi
+scrapy
+scrapyd
+scrapyd-client
+
+

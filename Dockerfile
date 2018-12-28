@@ -7,12 +7,9 @@ RUN apt-get clean && apt-get -q -y update \
     liblapack-dev \
     libatlas-base-dev
 
-RUN pip install virtualenv \
-    && virtualenv tml
-
 COPY transmedialint/requirements.txt transmedialint/requirements.txt
     
-RUN /bin/bash -c "source tml/bin/activate && pip3 install -r transmedialint/requirements.txt && deactivate"
+RUN pip3 install -r transmedialint/requirements.txt
 
 ADD transmedialint /transmedialint
 
