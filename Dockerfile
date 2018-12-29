@@ -1,11 +1,7 @@
-FROM python:latest
+FROM python:3.6-alpine
 
-RUN apt-get clean && apt-get -q -y update \
-    && DEBIAN_FRONTEND=noninteractive apt-get -q -y --fix-missing install \
-    gfortran \
-    libblas-dev \
-    liblapack-dev \
-    libatlas-base-dev
+RUN apk update \
+  && apk add build-base python3-dev jpeg-dev zlib-dev musl-dev openblas-dev freetype-dev pkgconfig gfortran libffi-dev libxml2-dev libxslt-dev postgresql-dev libxml2 libxslt
 
 COPY transmedialint/requirements.txt transmedialint/requirements.txt
     
