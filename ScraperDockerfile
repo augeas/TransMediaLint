@@ -13,4 +13,6 @@ ADD transmedialint /transmedialint
 
 WORKDIR /transmedialint
 
+RUN pypy3 setup.py sdist && pypy3 setup.py install
+
 ENTRYPOINT ["/transmedialint/run_scrapyd.sh"]
