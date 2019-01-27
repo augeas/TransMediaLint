@@ -1,5 +1,6 @@
 
 from datetime import datetime
+import os
 
 import scrapy
 
@@ -15,8 +16,10 @@ class LoginSpider(scrapy.Spider):
         else:
             self.terms = None
         self.last_scraped = kwargs.get('last_scraped', None)    
-        self.username = kwargs.get('username', None)
-        self.password = kwargs.get('query', None)
+        self.username = kwargs.get('username',
+            os.environ.get('TIMES_USERNAME'))
+        self.password = kwargs.get('password',
+            os.environ.get('TIMES_PASSWORD'))
 
 
     def parse(self, response):

@@ -1,6 +1,7 @@
 
 
 import json
+import os
 
 from dateutil import parser
 import scrapy
@@ -21,7 +22,7 @@ class SearchSpider(scrapy.Spider):
         else:
             self.terms = None
         self.last_scraped = kwargs.get('last_scraped', None)
-        self.key = kwargs.get('key', None)
+        self.key = kwargs.get('key', os.environ.get('GUARDIAN_KEY'))
             
             
     def start_requests(self):

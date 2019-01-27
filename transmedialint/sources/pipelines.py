@@ -7,8 +7,13 @@ from dateutil import parser as dateparser
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
 from django.utils.text import slugify
+import requests
 
-from sources import models
+from sources import models as source_models
+from tmw_style_guide import models as tmw_models
+
+
+SOLR_URL = 'http://solr:8983/solr/articles/update/extract'
 
 
 class ArticlePipeline(object):
@@ -21,7 +26,7 @@ class ArticlePipeline(object):
     def get_source(self, name):
         source = self.sources.get(name)
         if not source:
-            source = models.Source.get(name=name)
+            source = source_models.Source.get(name=name)
             self.sources[name] = source
         return source
     
@@ -43,7 +48,7 @@ class ArticlePipeline(object):
         fetched = False
         while not fetched:
             try:
-                author, created = Author.objects.get_or_create(name=name, slug=slug)
+                author, created = source_models.Author.objects.get_or_create(name=name, slug=slug)
                 if created:
                     author.save()
                 fetched = True
@@ -80,9 +85,23 @@ class ArticlePipeline(object):
         art.date_retrieved = localtimezone.now()
         art.page.save(slug, ContentFile(item['content']),
             save=True)
+        if item.get('preview'):
+            art.preview.save(slug+'_preview', ContentFile(item['preview'],
+                save=True)
         art.author = self.get_authors(item['byline'])
         
         art.save()
+
+        solr_fields = {}
+        solr_fields['literal.id'] = art.id
+        solr_fields['literal.author'] = ref['author']
+        solr_fields['literal.title'] = art.title
+        solr_fields['literal.source'] = art.source.name
+        solr_fields['literal.url'] = art.url
+        solr_fields['literal.timestamp'] = ref['date_published'].timestamp()
+        solr_fields['commitWithin'] = '2000'        
+        solr_files = {'file': ('article.html', (item['content'])}
+        requests.post(SOLR_URL, data=solr_fields, files=solr_files)
         
-        return item
+        return {**item, **{'article_id': art.id, 'source_id': art.source.id}}
     
