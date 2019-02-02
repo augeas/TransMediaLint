@@ -66,7 +66,8 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse_article(self, response):
-        yield {**response.meta, **{'content': response.text}}
+        yield {**response.meta, **{'content': response.text,
+            'source': 'The Daily Mail'}}
         
         
         

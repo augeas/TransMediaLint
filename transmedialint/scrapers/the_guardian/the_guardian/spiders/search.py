@@ -44,7 +44,7 @@ class SearchSpider(scrapy.Spider):
         
         if new_results:
         
-            yield from ({'source': 'TheGuardian',
+            yield from ({'source': 'The Guardian',
                 'title': res['fields']['headline'],
                 'byline': res['fields']['byline'],
                 'date_published': res['timestamp'],

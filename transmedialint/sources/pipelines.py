@@ -26,7 +26,7 @@ class ArticlePipeline(object):
     def get_source(self, name):
         source = self.sources.get(name)
         if not source:
-            source = source_models.Source.get(name=name)
+            source = source_models.Source.get(title=name)
             self.sources[name] = source
         return source
     
@@ -81,13 +81,13 @@ class ArticlePipeline(object):
         art.slug = slug
         art.source = self.get_source(item['source'])
         art.date_published = localtimsezone.localtime(dateparser.parse(
-            item['date_published'])
+            item['date_published']))
         art.date_retrieved = localtimezone.now()
         art.page.save(slug, ContentFile(item['content']),
             save=True)
-        if item.get('preview'):
+        if item.get['preview']:
             art.preview.save(slug+'_preview', ContentFile(item['preview'],
-                save=True)
+                save=True))
         art.author = self.get_authors(item['byline'])
         
         art.save()
@@ -100,7 +100,7 @@ class ArticlePipeline(object):
         solr_fields['literal.url'] = art.url
         solr_fields['literal.timestamp'] = ref['date_published'].timestamp()
         solr_fields['commitWithin'] = '2000'        
-        solr_files = {'file': ('article.html', (item['content'])}
+        solr_files = {'file': ('article.html', item['content'])}
         requests.post(SOLR_URL, data=solr_fields, files=solr_files)
         
         return {**item, **{'article_id': art.id, 'source_id': art.source.id}}

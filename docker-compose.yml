@@ -28,7 +28,7 @@ services:
        context: .
      ports:
      - "6800:6800"
-    depends_on:
+     depends_on:
       - solr
       - db
      

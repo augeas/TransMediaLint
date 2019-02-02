@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
+
+import django
+
 # Scrapy settings for the_times project
 #
 # For simplicity, this file contains only settings considered important or
@@ -8,6 +12,8 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
 
 BOT_NAME = 'the_times'
 

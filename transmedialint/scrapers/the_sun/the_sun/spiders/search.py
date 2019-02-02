@@ -68,7 +68,8 @@ class SearchSpider(scrapy.Spider):
         preview = response.css('.article__kicker').xpath('./text()').extract()[0]
 
         yield {'title': title, 'byline': authorspan, 'preview': preview,
-            'date_published':timestamp, 'content': response.text}
+            'date_published':timestamp, 'content': response.text,
+            'source': 'The Sun'}
 
 
 

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
+
+import django
+
 # Scrapy settings for the_daily_mail project
 #
 # For simplicity, this file contains only settings considered important or
@@ -8,6 +12,8 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
 
 BOT_NAME = 'the_daily_mail'
 
@@ -69,6 +75,11 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 #ITEM_PIPELINES = {
 #    'the_daily_mail.pipelines.TheDailyMailPipeline': 300,
 #}
+
+ITEM_PIPELINES = {
+    'sources.pipelines.ArticlePipeline': 300,
+    'tmw_style_guide.TMLintPipeline': 310
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
