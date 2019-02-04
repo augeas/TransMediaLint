@@ -27,7 +27,12 @@ services:
        dockerfile: ScraperDockerfile
        context: .
      ports:
-     - "6800:6800"
+       - "6800:6800"
+     environment:
+      - DB_HOST=db
+     volumes:
+      - tml_articles:/transmedialint/article_dump
+      - tml_models:/transmedialint/model_dump     
      depends_on:
       - solr
       - db
@@ -36,7 +41,9 @@ services:
     build: .
     command: "python manage.py runserver 0.0.0.0:8000"
     ports:
-    - "8000:8000"
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
     volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump

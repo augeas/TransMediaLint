@@ -1,7 +1,11 @@
+bs4
 html2text
 python-dateutil
+django-filter
+djangorestframework
 django
 psycopg2cffi
+requests
 scrapy
 scrapyd
 scrapyd-client

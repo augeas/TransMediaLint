@@ -70,7 +70,3 @@ class SearchSpider(scrapy.Spider):
             'source': 'The Daily Mail'}}
         
         
-        
-
-        
-     

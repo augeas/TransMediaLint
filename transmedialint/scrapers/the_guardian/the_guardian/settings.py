@@ -25,7 +25,9 @@ NEWSPIDER_MODULE = 'the_guardian.spiders'
 #USER_AGENT = 'the_guardian (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
+
+DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -55,6 +57,11 @@ ROBOTSTXT_OBEY = True
 #SPIDER_MIDDLEWARES = {
 #    'the_guardian.middlewares.TheGuardianSpiderMiddleware': 543,
 #}
+
+ITEM_PIPELINES = {
+    'sources.pipelines.ArticlePipeline': 300,
+    'tmw_style_guide.TMLintPipeline': 310
+}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html

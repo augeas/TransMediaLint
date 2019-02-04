@@ -11,6 +11,7 @@ import pytz
 from scrapyd_api import ScrapydAPI
 
 from sources.models import Article, Author, Source
+from transmedialint import settings
 
 class Crawler(object):
 
@@ -31,10 +32,10 @@ class Crawler(object):
 
         
     @classmethod
-    def scrape(cls,terms):
-        scrapyd = ScrapydAPI('http://localhost:6800')
+    def scrape(cls, terms=settings.DEFAULT_TERMS):
+        scrapyd = ScrapydAPI('http://scraper:6800')
         scrapyd.schedule(cls.crawler, 'search', query=terms,
-            last_scraped=cls.date_last_scraped.isoformat())
+            last_scraped=cls.date_last_scraped().isoformat())
 
         
     @classmethod
