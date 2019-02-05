@@ -20,6 +20,8 @@ class LoginSpider(scrapy.Spider):
             os.environ.get('TIMES_USERNAME'))
         self.password = kwargs.get('password',
             os.environ.get('TIMES_PASSWORD'))
+        
+        super().__init__(**kwargs)
 
 
     def parse(self, response):

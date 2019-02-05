@@ -23,6 +23,8 @@ class SearchSpider(scrapy.Spider):
             self.terms = None
         self.last_scraped = kwargs.get('last_scraped', None)
         self.key = kwargs.get('key', os.environ.get('GUARDIAN_KEY'))
+        
+        super().__init__(**kwargs)
             
             
     def start_requests(self):

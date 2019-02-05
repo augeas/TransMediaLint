@@ -14,6 +14,8 @@ import django
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
+django.setup()
+
 
 BOT_NAME = 'the_times'
 

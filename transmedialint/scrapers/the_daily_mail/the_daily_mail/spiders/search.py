@@ -1,5 +1,6 @@
 
 from datetime import datetime
+import logging
 
 import scrapy
 
@@ -10,21 +11,24 @@ class SearchSpider(scrapy.Spider):
     base_url = 'http://www.dailymail.co.uk/home/search.html'
     search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         query = kwargs.get('query', None)
         if query:
             self.terms = '+or+'.join(query.split())
         else:
             self.terms = None
-        self.last_scraped = kwargs.get('last_scraped', None)    
+        self.last_scraped = kwargs.get('last_scraped', None)
+        
+        super().__init__(*args, **kwargs)
             
     def start_requests(self):
         url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
+        logging.info(url)
         yield scrapy.Request(url=url, callback=self.parse, meta={'offset': 0})
         
         
     def parse(self, request):
-        next_offset = request.meta.get('offset', 0)
+        next_offset = 50 + request.meta.get('offset', 0)
         
         articles = response.css('.sch-res-content')
         anchors = articles.xpath('./h3').css('.sch-res-title').xpath(

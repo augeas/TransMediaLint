@@ -34,7 +34,7 @@ class Crawler(object):
     @classmethod
     def scrape(cls, terms=settings.DEFAULT_TERMS):
         scrapyd = ScrapydAPI('http://scraper:6800')
-        scrapyd.schedule(cls.crawler, 'search', query=terms,
+        scrapyd.schedule(cls.crawler, 'search', query=' '.join(terms),
             last_scraped=cls.date_last_scraped().isoformat())
 
         

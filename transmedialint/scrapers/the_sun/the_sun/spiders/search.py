@@ -1,3 +1,5 @@
+import logging
+
 import scrapy
 
 
@@ -5,18 +7,23 @@ class SearchSpider(scrapy.Spider):
     name = "search"
     
     
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         query = kwargs.get('query', None)
         if query:
             self.terms = query.split()
         else:
             self.terms = []
+        assert self.terms
         self.last_scraped = kwargs.get('last_scraped', None)
+        
+        super().__init__(*args, **kwargs)
         
         
     def start_requests(self):
-        urls = map;p('https://www.thesun.co.uk/?s={}'.format,
-            self.terms)
+        urls = list(map('https://www.thesun.co.uk/?s={}'.format,
+            self.terms))
+        
+        logging.info(' '.join(urls))
         
         yield from (scrapy.Request(url=u, callback=self.parse,
             meta={'page': 1, 'term': t}) for u, t in zip(urls,self.terms))

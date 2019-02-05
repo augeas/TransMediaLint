@@ -14,6 +14,7 @@ import django
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
+django.setup()
 
 BOT_NAME = 'the_daily_mail'
 
@@ -85,7 +86,7 @@ ITEM_PIPELINES = {
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
