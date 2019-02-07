@@ -5,30 +5,25 @@ import logging
 import scrapy
 
 
+base_url = 'http://www.dailymail.co.uk/home/search.html'
+search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
+
+
 class SearchSpider(scrapy.Spider):
     name = 'search'
-
-    base_url = 'http://www.dailymail.co.uk/home/search.html'
-    search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
-
-    def __init__(self, *args, **kwargs):
-        query = kwargs.get('query', None)
-        if query:
-            self.terms = '+or+'.join(query.split())
-        else:
-            self.terms = None
-        self.last_scraped = kwargs.get('last_scraped', None)
-        
-        super().__init__(*args, **kwargs)
             
     def start_requests(self):
-        url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
+        logging.info(self.query)
+        logging.info('START')
+        terms = '+or+'.join(self.query.split())
+        logging.info(terms)
+        url = '?'.join([base_url, search_args.format(0, 50, terms)])
         logging.info(url)
         yield scrapy.Request(url=url, callback=self.parse, meta={'offset': 0})
         
         
-    def parse(self, request):
-        next_offset = 50 + request.meta.get('offset', 0)
+    def parse(self, response):
+        next_offset = 50 + response.meta.get('offset', 0)
         
         articles = response.css('.sch-res-content')
         anchors = articles.xpath('./h3').css('.sch-res-title').xpath(
@@ -56,7 +51,7 @@ class SearchSpider(scrapy.Spider):
             title, url, preview, byline, timestamp in
             zip(titles, urls, previews, bylines, timestamps))
         
-        new = filter(lambda m: m['timestamp'] > self.last_scraped, meta)
+        new = filter(lambda m: m['date_published'] > self.last_scraped, meta)
         
         requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
             meta=m) for m in new]
@@ -72,5 +67,4 @@ class SearchSpider(scrapy.Spider):
     def parse_article(self, response):
         yield {**response.meta, **{'content': response.text,
             'source': 'The Daily Mail'}}
-        
         

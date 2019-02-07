@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import django
 
@@ -13,7 +14,8 @@ import django
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
+sys.path.append(os.path.abspath('../..'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'transmedialint.settings')
 django.setup()
 
 BOT_NAME = 'the_daily_mail'
@@ -81,7 +83,7 @@ DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 
 ITEM_PIPELINES = {
     'sources.pipelines.ArticlePipeline': 300,
-    'tmw_style_guide.TMLintPipeline': 310
+    'tmw_style_guide.pipelines.TMLintPipeline': 310
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

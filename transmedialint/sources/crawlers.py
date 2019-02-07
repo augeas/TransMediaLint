@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import itertools
+import os
 import re
 
 from django.core.files.base import ContentFile
@@ -33,7 +34,8 @@ class Crawler(object):
         
     @classmethod
     def scrape(cls, terms=settings.DEFAULT_TERMS):
-        scrapyd = ScrapydAPI('http://scraper:6800')
+        scrapyd = ScrapydAPI('http://{}:6800'.format(os.environ.get(
+            'SCRAPING_HOST', 'localhost')))
         scrapyd.schedule(cls.crawler, 'search', query=' '.join(terms),
             last_scraped=cls.date_last_scraped().isoformat())
 
