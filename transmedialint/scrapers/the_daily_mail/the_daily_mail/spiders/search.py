@@ -13,11 +13,9 @@ class SearchSpider(scrapy.Spider):
     name = 'search'
             
     def start_requests(self):
-        logging.info(self.query)
-        logging.info('START')
-        terms = '+or+'.join(self.query.split())
-        logging.info(terms)
-        url = '?'.join([base_url, search_args.format(0, 50, terms)])
+        logging.info('SEARCHING THE DAILY MAIL FOR :{}'.format(self.query))
+        self.terms = '+or+'.join(self.query.split())
+        url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
         logging.info(url)
         yield scrapy.Request(url=url, callback=self.parse, meta={'offset': 0})
         
@@ -65,6 +63,7 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse_article(self, response):
+        logging.info('DAILY MAIL: SCRAPED: {} '.format(response.meta['title']))
         yield {**response.meta, **{'content': response.text,
             'source': 'The Daily Mail'}}
         

@@ -36,13 +36,18 @@ class TMLintPipeline(object):
 
 
     def annotate(self, doc):
-        for rule in rules:
+        for rule in rules.rules:
             for match in rule.rule.finditer(doc):
                 yield Annot(match.group(), match.span()[0],
                     rule.tag, rule.label)
 
         
     def process_item(self, item, spider):
+        
+        art_id = item.get('article_id')
+        if not art_id:
+            return item
+        
         raw_text = html2text.html2text(item['content'])
         
         annotations = list(self.annotate(raw_text))
@@ -58,12 +63,16 @@ class TMLintPipeline(object):
         rated = {tag:len(list(count)) for tag, count in
             itertools.groupby(sorted([a.tag for a in annotations]))}
         
-        if sum([rated.get(t,0) for t in rule_tags[:-1]]) == 0:
-            rated['rating'] = 'yellow'
+        if sum([rated.get(t,0) for t in rules.rule_tags[:-1]]) == 0:
+            if rated.get(tags[-1], 0) == 0:
+                rated['rating'] = 0
+            else:
+                rated['rating'] = 'yellow'
         else:
             rated['rating'] = 'red'
-        rated['article__id'] = item['article_id']
+            
+        rated['article__id'] = art_id
         
         obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
         
-        
+        return item

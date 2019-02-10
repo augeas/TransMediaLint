@@ -75,6 +75,6 @@ class TheGuardian(Crawler):
 class TheTimes(Crawler):
 
     timezone = pytz.timezone('Europe/London')
-    title = 'The TheTimes'
+    title = 'The Times'
     crawler = 'the_times'
         

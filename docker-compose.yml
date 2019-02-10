@@ -30,6 +30,7 @@ services:
        - "6800:6800"
      environment:
       - DB_HOST=db
+      - SOLR_HOST=solr
      volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump     
