@@ -64,14 +64,14 @@ class TMLintPipeline(object):
             itertools.groupby(sorted([a.tag for a in annotations]))}
         
         if sum([rated.get(t,0) for t in rules.rule_tags[:-1]]) == 0:
-            if rated.get(tags[-1], 0) == 0:
+            if rated.get(rules.rule_tags[-1], 0) == 0:
                 rated['rating'] = 0
             else:
                 rated['rating'] = 'yellow'
         else:
             rated['rating'] = 'red'
             
-        rated['article__id'] = art_id
+        rated['article_id'] = art_id
         
         obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
         

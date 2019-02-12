@@ -9,5 +9,3 @@ requests
 scrapy
 scrapyd
 scrapyd-client
-
-

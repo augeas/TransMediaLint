@@ -4,17 +4,30 @@ import logging
 
 import scrapy
 
+from transmedialint import settings as tml_settings
 
 base_url = 'http://www.dailymail.co.uk/home/search.html'
 search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
 
 
+DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
+
+
 class SearchSpider(scrapy.Spider):
     name = 'search'
+    
+    
+    def __init__(self, query=DEFAULT_QUERY, last_scraped=None, **kwargs):
+        logging.info('SEARCHING THE DAILY MAIL FOR :{}'.format(query))
+        self.terms = '+or+'.join(query.split())
+        if last_scraped:
+            self.last_scraped = last_scraped
+        else:
+            self.last_scraped = datetime.fromtimestamp(0).isoformat()
+        super().__init__(**kwargs)    
+    
             
     def start_requests(self):
-        logging.info('SEARCHING THE DAILY MAIL FOR :{}'.format(self.query))
-        self.terms = '+or+'.join(self.query.split())
         url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
         logging.info(url)
         yield scrapy.Request(url=url, callback=self.parse, meta={'offset': 0})
