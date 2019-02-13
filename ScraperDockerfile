@@ -1,19 +1,21 @@
-FROM jamiehewland/alpine-pypy:3-6
 
-COPY transmedialint/scraper_requirements.txt transmedialint/scraper_requirements.txt
+FROM python:3.6-alpine
+
+COPY transmedialint/scraper_requirements.txt transmedialint/requirements.txt
+
+RUN pip install -r transmedialint/requirements.txt
 
 RUN apk update \
   && apk add --virtual build-deps gcc linux-headers python3-dev musl-dev libffi-dev libxml2-dev libxslt-dev \
   && apk add bash curl python3 postgresql-dev libzmq libffi libxml2 libxslt \
-  && pypy3 -m pip install --upgrade pip \
-  && pypy3 -m pip install -r transmedialint/scraper_requirements.txt \
+  && pip install --upgrade pip \
+  && pip install -r transmedialint/requirements.txt \
   && apk del build-deps
 
 ADD transmedialint /transmedialint
 
 WORKDIR /transmedialint
 
-RUN pypy3 setup.py sdist && pypy3 setup.py install
+RUN python setup.py sdist && python setup.py install
 
 ENTRYPOINT ["/transmedialint/run_scrapyd.sh"]
-
