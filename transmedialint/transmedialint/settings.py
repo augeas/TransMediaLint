@@ -12,14 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
-try:
-    from psycopg2cffi import compat
-    compat.register()
-except:
-    pass
 
-
-DEFAULT_TERMS = ['transgender', 'transsexual', 'non-binary', 'intersex']
+DEFAULT_TERMS = ['transgender', 'transsexual', 'intersex']
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

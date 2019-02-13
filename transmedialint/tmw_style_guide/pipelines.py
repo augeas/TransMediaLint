@@ -44,7 +44,7 @@ class TMLintPipeline(object):
         
     def process_item(self, item, spider):
         
-        art_id = item.get('article_id')
+        art_id = item.get('article_id', False)
         if not art_id:
             return item
         

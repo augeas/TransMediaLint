@@ -4,7 +4,7 @@ python-dateutil
 django-filter
 djangorestframework
 django
-psycopg2cffi
+psycopg2
 requests
 scrapy
 scrapyd

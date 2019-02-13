@@ -45,7 +45,7 @@ services:
       - "8000:8000"
     environment:
       - DB_HOST=db
-      - SCRAPING_HOST='scraper'
+      - SCRAPING_HOST=scraper
     volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump

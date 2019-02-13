@@ -22,7 +22,7 @@ BOT_NAME = 'the_sun'
 SPIDER_MODULES = ['the_sun.spiders']
 NEWSPIDER_MODULE = 'the_sun.spiders'
 
-DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
+#DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'the_sun (+http://www.yourdomain.com)'
@@ -79,7 +79,7 @@ ROBOTSTXT_OBEY = False
 
 ITEM_PIPELINES = {
     'sources.pipelines.ArticlePipeline': 300,
-    'tmw_style_guide.TMLintPipeline': 310
+    'tmw_style_guide.pipelines.TMLintPipeline': 310
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

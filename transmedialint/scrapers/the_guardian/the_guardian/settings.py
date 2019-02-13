@@ -29,7 +29,7 @@ NEWSPIDER_MODULE = 'the_guardian.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
+#DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
