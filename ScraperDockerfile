@@ -4,8 +4,8 @@ FROM python:3.6-alpine
 COPY transmedialint/scraper_requirements.txt transmedialint/requirements.txt
 
 RUN apk update \
-  && apk add --virtual build-deps gcc linux-headers postgresql-dev python3-dev musl-dev libffi-dev libxml2-dev libxslt-dev \
-  && apk add bash curl python3  libzmq libffi libxml2 libxslt libpq \
+  && apk add --virtual build-deps gcc linux-headers python3-dev musl-dev libffi-dev libxml2-dev libxslt-dev \
+  && apk add bash curl python3 postgresql-dev libzmq libffi libxml2 libxslt \
   && pip install --upgrade pip \
   && pip install -r transmedialint/requirements.txt \
   && apk del build-deps
@@ -17,4 +17,3 @@ WORKDIR /transmedialint
 RUN python setup.py sdist && python setup.py install
 
 ENTRYPOINT ["/transmedialint/run_scrapyd.sh"]
-

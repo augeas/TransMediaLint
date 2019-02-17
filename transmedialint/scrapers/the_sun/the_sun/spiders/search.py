@@ -40,7 +40,7 @@ class SearchSpider(scrapy.Spider):
         urls = response.css('.teaser-anchor--search').xpath(
             './@href').extract()
 
-        new = list(filter(lambda t,u: t>self.last_scraped,
+        new = list(filter(lambda t: t[0].isoformat() > self.last_scraped,
             zip(timestamps, urls)))
         
         if new:
@@ -77,8 +77,8 @@ class SearchSpider(scrapy.Spider):
         preview = response.css('.article__kicker').xpath('./text()').extract()[0]
 
         yield {'title': title, 'byline': authorspan, 'preview': preview,
-            'date_published':timestamp, 'content': response.text,
-            'source': 'The Sun'}
+            'url': response.url,'date_published':timestamp,
+            'content': response.text, 'source': 'The Sun'}
 
 
 
