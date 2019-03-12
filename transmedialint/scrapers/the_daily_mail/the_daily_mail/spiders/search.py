@@ -83,9 +83,7 @@ class SearchSpider(scrapy.Spider):
         
         if requests:
             yield from requests
-            url = '?'.join([base_url, search_args.format(
-                next_offset, 50, self.terms)])
-            yield from yield from self.search_pages(next_offset)
+            yield from self.search_pages(next_offset)
         
         
     def parse_article(self, response):
