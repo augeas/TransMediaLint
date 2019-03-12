@@ -54,7 +54,7 @@ class TMLintPipeline(object):
         
         for annot in annotations:
             obj, created = tmw_models.Annotation.objects.get_or_create(
-                article__id = item['article_id'],
+                article_id = item['article_id'],
                 tag = annot.tag,
                 text = annot.text,
                 position = annot.pos,

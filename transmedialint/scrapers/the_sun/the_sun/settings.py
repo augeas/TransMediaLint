@@ -16,11 +16,14 @@ import django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
 django.setup()
 
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 
 BOT_NAME = 'the_sun'
 
 SPIDER_MODULES = ['the_sun.spiders']
 NEWSPIDER_MODULE = 'the_sun.spiders'
+
+LOG_LEVEL = 'INFO'
 
 #DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 

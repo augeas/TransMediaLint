@@ -23,6 +23,7 @@ BOT_NAME = 'the_daily_mail'
 SPIDER_MODULES = ['the_daily_mail.spiders']
 NEWSPIDER_MODULE = 'the_daily_mail.spiders'
 
+LOG_LEVEL = 'INFO'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'the_daily_mail (+http://www.yourdomain.com)'

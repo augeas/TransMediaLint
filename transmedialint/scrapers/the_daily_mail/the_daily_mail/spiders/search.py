@@ -13,28 +13,41 @@ search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=artic
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
 
 
+def search_item_date(ts):
+    try:
+        return datetime.strptime(ts, '%B %d %Y, %I:%M:%S %p').isoformat()
+    except:
+        return None
+
+
 class SearchSpider(scrapy.Spider):
     name = 'search'
     
     
     def __init__(self, query=DEFAULT_QUERY, last_scraped=None, **kwargs):
         logging.info('SEARCHING THE DAILY MAIL FOR :{}'.format(query))
-        self.terms = '+or+'.join(query.split())
+        self.terms = query.split()
         if last_scraped:
             self.last_scraped = last_scraped
         else:
             self.last_scraped = datetime.fromtimestamp(0).isoformat()
         super().__init__(**kwargs)    
+
+
+    def search_pages(self, offset):
+        urls = ('?'.join([base_url, search_args.format(0, 50, term)]) for term
+            in self.terms)
+        return (scrapy.Request(url=url, callback=self.parse,
+            meta={'offset': offset}) for url in urls)
+        
     
-            
     def start_requests(self):
-        url = '?'.join([base_url, search_args.format(0, 50, self.terms)])
-        logging.info(url)
-        yield scrapy.Request(url=url, callback=self.parse, meta={'offset': 0})
+        yield from self.search_pages(0)
         
         
     def parse(self, response):
         next_offset = 50 + response.meta.get('offset', 0)
+        logging.info('DAILY MAIL, NEXT OFFSET: {}'.format(next_offset))
         
         articles = response.css('.sch-res-content')
         anchors = articles.xpath('./h3').css('.sch-res-title').xpath(
@@ -54,15 +67,16 @@ class SearchSpider(scrapy.Spider):
         timestr = (' '.join([t[1]] + [''.join(filter(str.isdigit,t[2]))]
             + t[3:]) for t in timechunks)
 
-        timestamps = (datetime.strptime(t, '%B %d %Y, %I:%M:%S %p'
-            ).isoformat() for t in timestr)
+        timestamps = map(search_item_date, timestr)
         
         meta = ({'title': title, 'url': url, 'preview': preview,
             'byline': byline, 'date_published': timestamp} for
             title, url, preview, byline, timestamp in
             zip(titles, urls, previews, bylines, timestamps))
         
-        new = filter(lambda m: m['date_published'] > self.last_scraped, meta)
+        valid_meta = filter(lambda m: all(m.values()), meta)
+        
+        new = filter(lambda m: m['date_published'] > self.last_scraped, valid_meta)
         
         requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
             meta=m) for m in new]
@@ -71,12 +85,11 @@ class SearchSpider(scrapy.Spider):
             yield from requests
             url = '?'.join([base_url, search_args.format(
                 next_offset, 50, self.terms)])
-            yield scrapy.Request(url=url, callback=self.parse,
-                meta={'offset': next_offset})
+            yield from yield from self.search_pages(next_offset)
         
         
     def parse_article(self, response):
-        logging.info('DAILY MAIL: SCRAPED: {} '.format(response.meta['title']))
+        logging.info('DAILY MAIL: SCRAPING: {} '.format(response.meta['title']))
         yield {**response.meta, **{'content': response.text,
             'source': 'The Daily Mail'}}
         
