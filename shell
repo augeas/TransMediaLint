@@ -1,1 +1,1 @@
-docker-compose run transmedialint /bin/bash -c "source ../tml/bin/activate && python manage.py shell"
+docker-compose run transmedialint /transmedialint/shell.sh

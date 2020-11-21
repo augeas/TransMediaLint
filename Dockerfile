@@ -1,19 +1,22 @@
-FROM python:latest
+FROM frolvlad/alpine-python-machinelearning
 
-RUN apt-get clean && apt-get -q -y update \
-    && DEBIAN_FRONTEND=noninteractive apt-get -q -y --fix-missing install \
-    gfortran \
-    libblas-dev \
-    liblapack-dev \
-    libatlas-base-dev
-
-RUN pip install virtualenv \
-    && virtualenv tml
 
 COPY transmedialint/requirements.txt transmedialint/requirements.txt
-    
-RUN /bin/bash -c "source tml/bin/activate && pip3 install -r transmedialint/requirements.txt && deactivate"
 
+RUN apk update \
+    && apk add --virtual build-deps python3-dev gcc g++ gfortran musl-dev libffi-dev libxml2-dev postgresql-dev libxslt-dev jpeg-dev zlib-dev freetype-dev pkgconfig \
+    && apk add bash libstdc++ libxml2 libxslt libffi libpq libjpeg-turbo \
+    && pip install -r transmedialint/requirements.txt \
+    && apk del build-deps
+
+RUN apk add curl    
+    
 ADD transmedialint /transmedialint
 
+RUN pip install scrapyd html2text
+
 WORKDIR /transmedialint
+
+RUN python setup.py sdist && python setup.py install
+
+#ENTRYPOINT ["/transmedialint/run.sh"]

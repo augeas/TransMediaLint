@@ -35,7 +35,7 @@ class Article(models.Model):
     date_published = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
     date_retrieved = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))    
     page = models.FileField(upload_to=article_directory_path)
-    preview = models.FileField(upload_to=preview_directory_path)
+    preview = models.FileField(upload_to=preview_directory_path, null=True)
     broken = models.BooleanField(default=False)
 
     def clean_strings(self):

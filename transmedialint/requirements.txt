@@ -9,9 +9,10 @@ pytz
 IPython
 gensim
 bokeh
+numpy
 pandas
 spacy
 psycopg2
-Jupyter
-
+python-scrapyd-api
+scrapyd-client
 

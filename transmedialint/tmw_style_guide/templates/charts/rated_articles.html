@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Rated Articles</title>
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bokeh/0.12.16/bokeh.min.css" type="text/css" />
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bokeh/0.12.16/bokeh-widgets.css" type="text/css" />
+    <title>{{ title | safe }}</title>
+    <link
+        href="https://cdn.bokeh.org/bokeh/release/bokeh-x.y.z.min.css"
+        rel="stylesheet" type="text/css">
+    <link
+        href="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.2.3.min.css"
+        rel="stylesheet" type="text/css">
  </head>
  <body>
      {{ div | safe }}
 </body>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/0.12.16/bokeh.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/0.12.16/bokeh-widgets.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.2.3.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.2.3.min.js"></script>
     {{ script | safe }}
 </html>

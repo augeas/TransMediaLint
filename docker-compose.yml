@@ -1,5 +1,7 @@
 version: '2'
+
 services:
+
   solr:
     container_name: tml_solr
     image: solr:alpine
@@ -11,26 +13,55 @@ services:
       - docker-entrypoint.sh
       - solr-precreate
       - articles
+      
   db:
     container_name: tml_pg
     image: postgres
     ports:
-    - "5432:5432"
+     - "5432:5432"
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-    - pg_data:/var/lib/postgresql/data
+     - pg_data:/var/lib/postgresql/data
+         
   transmedialint:
     build: .
-    command: /bin/bash -c "source ../tml/bin/activate && python manage.py runserver 0.0.0.0:8000"
+    command: "/transmedialint/run.sh"
     ports:
-    - "8000:8000"
+      - "8000:8000"
+      - "6800:6800"
+    environment:
+      - DB_HOST=db
+      - SOLR_HOST=solr
+      - GUARDIAN_KEY=$GUARDIAN_KEY
     volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump
     depends_on:
       - solr
       - db
+#      - scraper
+      
 volumes:
   solr_data:
   pg_data:
   tml_articles:
   tml_models:
+
+  
+  
+#  scraper:
+#     build:
+#       dockerfile: ScraperDockerfile
+#       context: .
+#     ports:
+#       - "6800:6800"
+#     environment:
+#      - DB_HOST=db
+#      - SOLR_HOST=solr
+#     volumes:
+#      - tml_articles:/transmedialint/article_dump
+#      - tml_models:/transmedialint/model_dump     
+#     depends_on:
+#      - solr
+#      - db

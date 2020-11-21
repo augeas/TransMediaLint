@@ -2,7 +2,7 @@
 from django.http import HttpResponse, Http404
 from django.db.models import Count
 from django.db.models.functions import ExtractMonth, Trunc
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
@@ -84,7 +84,7 @@ def rated_article_chart(request):
     
     script, div = components(fig)
 
-    return render_to_response('charts/rated_articles.html',
+    return render(request, 'charts/rated_articles.html',
         {'script':script, 'div': div, 'title':title})
         
     
