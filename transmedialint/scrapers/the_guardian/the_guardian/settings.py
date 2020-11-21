@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import django
 
@@ -13,6 +14,7 @@ import django
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
+sys.path.append(os.path.abspath('../..'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
 django.setup()
 
@@ -62,7 +64,7 @@ ROBOTSTXT_OBEY = False
 
 ITEM_PIPELINES = {
     'sources.pipelines.ArticlePipeline': 300,
-    'tmw_style_guide.TMLintPipeline': 310
+    'tmw_style_guide.pipelines.TMLintPipeline': 310
 }
 
 # Enable or disable downloader middlewares

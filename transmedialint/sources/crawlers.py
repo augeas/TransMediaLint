@@ -16,7 +16,8 @@ from transmedialint import settings
 
 class Crawler(object):
 
-    solr_url = 'http://localhost:8983/solr/articles/update/extract'
+    solr_url = 'http://{}:8983/solr/articles/update/extract'.format(
+        os.environ.get('SOLR_HOST', 'localhost'))
     
     @classmethod
     def get_slug(cls):

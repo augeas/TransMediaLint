@@ -39,9 +39,12 @@ class ArticlePipeline(object):
     
 
     def item_timestamp(self, item):
-        return self.timezones[item['source']].localize(
-            dateparser.parse(item['date_published']))
-        
+        try:
+            return self.timezones[item['source']].localize(
+                dateparser.parse(item['date_published']))
+        except:
+            return dateparser.parse(item['date_published'])
+
     
     def clean_names(self, names):
         names = re.split('\s[fF][oO][rR]\s',names)[0]

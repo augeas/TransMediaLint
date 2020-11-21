@@ -8,7 +8,15 @@ RUN apk update \
     && apk add bash libstdc++ libxml2 libxslt libffi libpq libjpeg-turbo \
     && pip install -r transmedialint/requirements.txt \
     && apk del build-deps
+
+RUN apk add curl    
     
 ADD transmedialint /transmedialint
 
+RUN pip install scrapyd html2text
+
 WORKDIR /transmedialint
+
+RUN python setup.py sdist && python setup.py install
+
+#ENTRYPOINT ["/transmedialint/run.sh"]
