@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 import django
 
@@ -13,7 +14,8 @@ import django
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'transmedialint.settings'
+sys.path.append(os.path.abspath('../..'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'transmedialint.settings')
 django.setup()
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'

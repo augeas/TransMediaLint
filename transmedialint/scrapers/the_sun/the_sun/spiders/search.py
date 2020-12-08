@@ -2,6 +2,7 @@
 from datetime import datetime
 import logging
 
+from dateutil import parser
 import scrapy
 
 
@@ -16,7 +17,8 @@ class SearchSpider(scrapy.Spider):
         else:
             self.terms = []
         assert self.terms
-        self.last_scraped = kwargs.get('last_scraped', None)
+        self.last_scraped = kwargs.get('last_scraped',
+            datetime.fromtimestamp(0).isoformat())
         
         super().__init__(*args, **kwargs)
         
@@ -34,7 +36,7 @@ class SearchSpider(scrapy.Spider):
     def parse(self, response):
         page = response.meta['page'] + 1
         
-        timestamps = (datetime.strptime(t, '%d %B %Y') for t in
+        timestamps = (parser.parse(t) for t in
             response.css('.search-date').xpath('./text()').extract())
         
         urls = response.css('.teaser-anchor--search').xpath(
@@ -59,29 +61,22 @@ class SearchSpider(scrapy.Spider):
         
         day, month, year = datespan.split()
         
-        day_str = ''.join(([0] + list(filter(str.isdigit,day)))[-2:])
+        day_str = ''.join((['0'] + list(filter(str.isdigit,day)))[-2:])
 
         time_str = ' '.join([day_str,month,year,timespan.strip()])
-        timestamp = datetime.strptime(
-            time_str, '%d %B %Y, %I:%M %p').isoformat()
-
+        timestamp = parser.parse(time_str).isoformat()
         
-        authorspan =  response.css('.article__author-name')[0].xpath(
-            './text()').extract()[0]
-        
-        author = ' '.join(authorspan.split()[1:]).split(',')[0]
+        try:
+            author = response.css('.author')[0].xpath('@data-author').extract_first()
+        except:
+            author = response.css('.article__author-name').xpath('text()').extract_first()
         
         title = response.css('.article__headline')[0].xpath(
             './text()').extract()[0]
 
         preview = response.css('.article__kicker').xpath('./text()').extract()[0]
 
-        yield {'title': title, 'byline': authorspan, 'preview': preview,
+        yield {'title': title, 'byline': author, 'preview': preview,
             'url': response.url,'date_published':timestamp,
             'content': response.text, 'source': 'The Sun'}
 
-
-
-
-        
-        

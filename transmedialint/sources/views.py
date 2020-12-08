@@ -44,11 +44,3 @@ class CrawlerViewSet(viewsets.ReadOnlyModelViewSet):
         crawler.scrape()
         return Response({'crawler': pk, 'error': False}) 
 
-
-
-
-
-
- 
- 
-
