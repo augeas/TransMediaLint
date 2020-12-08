@@ -16,7 +16,6 @@ from scrapyd_api import ScrapydAPI
 from sources.models import Article, Author, Source
 from transmedialint import settings
 
-from transmedialint.settings import DEFAULT_SEARCH_TERMS, GUARDIAN_API_KEY
 
 class Crawler(object):
 
@@ -37,12 +36,23 @@ class Crawler(object):
         except:
 
             return datetime.fromtimestamp(0)
-
+        
         
     @classmethod
-    def scrape(cls, terms=settings.DEFAULT_TERMS):
-        scrapyd = ScrapydAPI('http://{}:6800'.format(os.environ.get(
+    def get_scrapyd(cls):
+        return ScrapydAPI('http://{}:6800'.format(os.environ.get(
             'SCRAPING_HOST', 'localhost')))
+
+
+    @classmethod
+    def get_jobs(cls):
+        scrapyd = cls.get_scrapyd()
+        return scrapyd.list_jobs(cls.crawler)
+        
+
+    @classmethod
+    def scrape(cls, terms=settings.DEFAULT_TERMS):
+        scrapyd = cls.get_scrapyd()
         scrapyd.schedule(cls.crawler, 'search', query=' '.join(terms),
             last_scraped=cls.date_last_scraped().isoformat())
 
@@ -85,3 +95,5 @@ class TheTimes(Crawler):
     title = 'The Times'
     crawler = 'the_times'
         
+
+all_the_crawlers = [TheSun, TheDailyMail, TheGuardian, TheTimes]

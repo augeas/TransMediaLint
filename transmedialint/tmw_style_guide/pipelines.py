@@ -45,7 +45,8 @@ class TMLintPipeline(object):
     def process_item(self, item, spider):
         
         art_id = item.get('article_id', False)
-        if not art_id:
+        art_created = item.get('created', False)
+        if not (art_id and created):
             return item
         
         raw_text = html2text.html2text(item['content'])

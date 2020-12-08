@@ -98,6 +98,8 @@ class ArticlePipeline(object):
         except:
             art = None
             created = None
+
+        item['created'] = created
                 
         if art is None or not created:
             logging.info('SKIPPED: '+slug)

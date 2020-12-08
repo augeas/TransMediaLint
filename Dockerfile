@@ -13,8 +13,6 @@ RUN apk add curl
     
 ADD transmedialint /transmedialint
 
-RUN pip install scrapyd html2text
-
 WORKDIR /transmedialint
 
 RUN python setup.py sdist && python setup.py install

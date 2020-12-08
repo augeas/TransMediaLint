@@ -15,4 +15,5 @@ spacy
 psycopg2
 python-scrapyd-api
 scrapyd-client
-
+scrapyd
+html2text

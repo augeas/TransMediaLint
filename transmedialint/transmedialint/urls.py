@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('tmw_style_guide.urls')),
+    url(r'^', include('sources.urls')),
 ]

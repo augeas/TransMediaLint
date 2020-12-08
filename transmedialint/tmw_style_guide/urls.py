@@ -3,7 +3,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from . import views, chart_views
 
-urlpatterns = [
+patterns = [
     url(r'^lintedarticles/$', views.LintedArticleList.as_view()),
     url(r'^worstlintedarticles/$', views.WorstLintedArticles.as_view()),
     url(r'^annotationlabels/$', views.AnnotationLabels.as_view()),
@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^charts/rated_articles$',chart_views.rated_article_chart),
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+urlpatterns = format_suffix_patterns(patterns)
 
 
 

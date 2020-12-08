@@ -49,19 +49,3 @@ volumes:
   tml_models:
 
   
-  
-#  scraper:
-#     build:
-#       dockerfile: ScraperDockerfile
-#       context: .
-#     ports:
-#       - "6800:6800"
-#     environment:
-#      - DB_HOST=db
-#      - SOLR_HOST=solr
-#     volumes:
-#      - tml_articles:/transmedialint/article_dump
-#      - tml_models:/transmedialint/model_dump     
-#     depends_on:
-#      - solr
-#      - db
