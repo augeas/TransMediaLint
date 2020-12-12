@@ -46,7 +46,7 @@ class TMLintPipeline(object):
         
         art_id = item.get('article_id', False)
         art_created = item.get('created', False)
-        if not (art_id and created):
+        if not (art_id and art_created):
             return item
         
         raw_text = html2text.html2text(item['content'])
@@ -75,5 +75,7 @@ class TMLintPipeline(object):
         rated['article_id'] = art_id
         
         obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
+        
+        item['raw_text'] = raw_text
         
         return item

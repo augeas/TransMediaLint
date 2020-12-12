@@ -98,8 +98,6 @@ class ArticlePipeline(object):
         except:
             art = None
             created = None
-
-        item['created'] = created
                 
         if art is None or not created:
             logging.info('SKIPPED: '+slug)
@@ -127,5 +125,6 @@ class ArticlePipeline(object):
         solr_files = {'file': ('article.html', item['content'])}
         requests.post(SOLR_URL, data=solr_fields, files=solr_files)
         
-        return {**item, **{'article_id': art.id, 'source_id': art.source.id}}
+        return {**item, **{'article_id': art.id, 'source_id': art.source.id,
+            'created': created}}
     

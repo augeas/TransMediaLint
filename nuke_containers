@@ -1,3 +1,0 @@
-./kill_everything transmedialint_solr_data
-./kill_everything transmedialint_pg_data
-./kill_everything transmedialint_tml_articles

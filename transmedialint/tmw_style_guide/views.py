@@ -6,8 +6,8 @@ from django.shortcuts import render
 from rest_framework import generics
 
 from sources.models import Article, Author
-from .models import Annotation
-from . import serializers
+from tmw_style_guide.models import Annotation
+from tmw_style_guide import serializers
 
 
 class LintedArticleList(generics.ListCreateAPIView):

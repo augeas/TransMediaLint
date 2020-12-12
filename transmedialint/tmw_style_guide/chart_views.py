@@ -9,8 +9,8 @@ from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure
 import pandas as pd
 
-from .models import RatedArticle
 from sources.models import Article, Author, Source
+from tmw_style_guide.models import RatedArticle
 
 article_models = {'source':Source, 'author':Author}
 

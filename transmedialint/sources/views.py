@@ -5,9 +5,9 @@ from rest_framework.decorators import action
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from .crawlers import all_the_crawlers
-from .models import Source
-from . import serializers
+from sources.crawlers import all_the_crawlers
+from sources.models import Source
+from sources import serializers
 
 
 crawlers_by_slug = {crawler.crawler: crawler for crawler in all_the_crawlers}

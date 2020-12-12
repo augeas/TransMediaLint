@@ -18,6 +18,8 @@ sys.path.append(os.path.abspath('../..'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'transmedialint.settings')
 django.setup()
 
+from scrapers.base_settings import *
+
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 
 BOT_NAME = 'the_sun'
@@ -25,7 +27,7 @@ BOT_NAME = 'the_sun'
 SPIDER_MODULES = ['the_sun.spiders']
 NEWSPIDER_MODULE = 'the_sun.spiders'
 
-LOG_LEVEL = 'INFO'
+
 
 #DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 
@@ -33,7 +35,7 @@ LOG_LEVEL = 'INFO'
 #USER_AGENT = 'the_sun (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = False
+#ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -78,14 +80,7 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'the_sun.pipelines.TheSunPipeline': 300,
-#}
 
-ITEM_PIPELINES = {
-    'sources.pipelines.ArticlePipeline': 300,
-    'tmw_style_guide.pipelines.TMLintPipeline': 310
-}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

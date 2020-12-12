@@ -16,8 +16,8 @@ class Source(models.Model):
         return self.slug
 
 class Author(models.Model):
-    name = models.CharField(max_length=64, unique=True)
-    slug = models.SlugField(max_length=64, unique=True)
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField(max_length=128, unique=True)
     
 
 def article_directory_path(instance, filename):
