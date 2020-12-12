@@ -5,7 +5,7 @@ from sources.models import Article
 
 
 class NamedEntity(models.Model):
-    text = models.CharField(max_length=128)
+    text = models.CharField(max_length=256)
     label = models.CharField(max_length=32)
 
     class Meta:

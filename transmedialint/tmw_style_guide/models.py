@@ -33,5 +33,5 @@ class RatedArticle(models.Model):
      inaccurate = models.IntegerField(default=0)
      inappropriate = models.IntegerField(default=0)
      inappropriate_medical = models.IntegerField(default=0)
-     rating =  models.CharField(max_length=8, choices = (('RED','red'), ('YEL','yellow'), ('GRN','green')))
+     rating = models.CharField(max_length=8, choices = (('RED','red'), ('YEL','yellow'), ('GRN','green')))
 

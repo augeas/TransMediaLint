@@ -66,7 +66,7 @@ class TMLintPipeline(object):
         
         if sum([rated.get(t,0) for t in rules.rule_tags[:-1]]) == 0:
             if rated.get(rules.rule_tags[-1], 0) == 0:
-                rated['rating'] = 0
+                rated['rating'] = 'green'
             else:
                 rated['rating'] = 'yellow'
         else:

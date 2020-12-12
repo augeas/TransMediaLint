@@ -47,6 +47,7 @@ class AuthorFilter(filters.FilterSet):
         model = Author
         fields = ('source',)
 
+
 class WorstAuthors(generics.ListCreateAPIView):   
     queryset = Author.objects.annotate(articles=Count('article')).annotate(
         annots=Count('article__annotation')).order_by('-annots') 

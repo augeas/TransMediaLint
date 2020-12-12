@@ -21,7 +21,6 @@ django.setup()
 from scrapers.base_settings import *
 
 
-
 BOT_NAME = 'the_daily_mail'
 
 SPIDER_MODULES = ['the_daily_mail.spiders']

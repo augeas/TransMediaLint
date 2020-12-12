@@ -12,16 +12,33 @@ import pandas as pd
 from sources.models import Article, Author, Source
 from tmw_style_guide.models import RatedArticle
 
+
 article_models = {'source':Source, 'author':Author}
+
 
 def groupby_month(q):
     return q.annotate(
-        month=Trunc('date_published','month')).order_by('month').values('month').annotate(
-            count=Count('month')).values('count','month')
+        month=Trunc('date_published','month')).order_by('month').values(
+        'month').annotate(count=Count('month')).values('count','month')
+
 
 def aggregate_month(q):
-    return q.annotate(month=ExtractMonth('date_published','month')).values('month').order_by(
-        'month').annotate(count=(Count('month')))
+    return q.annotate(month=ExtractMonth('date_published','month')).values(
+        'month').order_by('month').annotate(count=(Count('month')))
+
+
+def get_rated_df(rating, query):
+    counts = [q['count'] for q in query]
+    index = [q['month'] for q in query]
+    df = pd.DataFrame({rating: counts}, index=index)
+
+    try:    
+        df.index = df.index.tz_localize(None)
+    except:
+        pass
+    
+    return df
+
 
 def rated_article_chart(request):
     
@@ -45,13 +62,14 @@ def rated_article_chart(request):
     
     articles = Article.objects.filter(**filters)
     
-    queries = {'green':groupby_month(articles.filter(ratedarticle=None)),
+    queries = {'green':groupby_month(articles.filter(ratedarticle__rating='green')),
         'yellow':groupby_month(articles.filter(ratedarticle__rating='yellow')),
         'red':groupby_month(articles.filter(ratedarticle__rating='red'))}
-    
-    get_df = lambda k,v: pd.DataFrame({k:[q['count'] for q in v]}, index =[q['month'] for q in v])
-    
-    data = pd.concat([get_df(k,v) for k,v in queries.items()], axis=1).fillna(0.0)
+        
+    data = pd.concat(
+        filter(lambda df: not df.empty,
+            (get_rated_df(k,v) for k,v in queries.items())),
+            axis=1).fillna(0.0)
     
     chart_data = ColumnDataSource(data=data)
 
