@@ -23,7 +23,15 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
      - pg_data:/var/lib/postgresql/data
-         
+
+  splash:     
+     container_name: tml_splash
+     image: scrapinghub/splash
+     ports:
+      - 5023:5023
+      - 8050:8050
+      - 8051:8051
+
   transmedialint:
     build: .
     command: "/transmedialint/run.sh"
@@ -42,7 +50,8 @@ services:
     depends_on:
       - solr
       - db
-      
+      - splash
+
 volumes:
   solr_data:
   pg_data:
