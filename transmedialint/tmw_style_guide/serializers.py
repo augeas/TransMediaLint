@@ -5,7 +5,17 @@ from django.db.models import Count
 from sources.models import Article, Author, Source
 from sources.serializers import AuthorSerializer, SourceSerializer,  ArticleSerializer
 
-from .models import Annotation
+from .models import Annotation, RatedArticle
+
+
+class RatedArticleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RatedArticle
+        fields = ('article', 'offensive', 'inaccurate', 'inappropriate')
+        
+        depth = 2
+
 
 class LintedArticleSerializer(serializers.ModelSerializer):
     annotation_count = serializers.SerializerMethodField()

@@ -5,14 +5,18 @@ import logging
 import re
 
 from dateutil import parser as dateparser
-
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
 from django.utils.text import slugify
 import html2text
+from scrapy.exceptions import DropItem
+import spacy
 
 from sources import models as source_models
 from tmw_style_guide import rules, models as tmw_models
+
+
+__nlp__ = spacy.load("en_core_web_sm") 
 
 
 Annot = namedtuple('Annotation', ['text', 'pos', 'tag', 'label'])
@@ -40,26 +44,42 @@ class TMLintPipeline(object):
             for match in rule.rule.finditer(doc):
                 yield Annot(match.group(), match.span()[0],
                     rule.tag, rule.label)
+                
+                
+    def transgender_noun(self, tok):
+        return tok.pos_ == 'NOUN' and tok.lemma_.startswith('transgend')
+    
 
-        
     def process_item(self, item, spider):
         
         art_id = item.get('article_id', False)
-        art_created = item.get('created', False)
-        if not (art_id and art_created):
-            return item
         
         raw_text = html2text.html2text(item['content'])
         
         annotations = list(self.annotate(raw_text))
+
+        doc = __nlp__(raw_text)
         
-        for annot in annotations:
-            obj, created = tmw_models.Annotation.objects.get_or_create(
-                article_id = item['article_id'],
-                tag = annot.tag,
-                text = annot.text,
-                position = annot.pos,
-                label = annot.label)
+        noun_tokens = filter(self.transgender_noun, doc)
+
+        noun_annotations = [
+            Annot(tok.text, tok.pos, 'offensive', 'transgender as a noun')
+            for tok in noun_tokens
+        ]
+
+        for annot in annotations + noun_annotations:
+            try:
+                obj, created = tmw_models.Annotation.objects.get_or_create(
+                    article_id = item['article_id'],
+                    tag = annot.tag,
+                    text = annot.text,
+                    position = annot.pos,
+                    label = annot.label)
+            except:
+                raise DropItem("CAN'T ANNOTATE: "+item['title'])
+
+            if created:
+                obj.save()
                 
         rated = {tag:len(list(count)) for tag, count in
             itertools.groupby(sorted([a.tag for a in annotations]))}
@@ -75,7 +95,10 @@ class TMLintPipeline(object):
         rated['article_id'] = art_id
         
         obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
+
+        if created:
+            obj.save()
         
-        item['raw_text'] = raw_text
+        item['doc'] = doc
         
         return item

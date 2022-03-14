@@ -2,18 +2,23 @@ from bs4 import BeautifulSoup
 
 from django.db import models
 from django.utils import timezone as localtimezone
+from django.utils.text import slugify
+
 
 class Source(models.Model):
     name = models.CharField(max_length=32, unique=True)
-    title = models.CharField(max_length=32, unique=True)
     slug = models.SlugField(max_length=32)
     last_scraped = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
-    region = models.CharField(max_length=32)
-    city = models.CharField(max_length=32)
     active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.slug
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+
 
 class Author(models.Model):
     name = models.CharField(max_length=128, unique=True)

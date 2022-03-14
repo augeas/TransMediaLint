@@ -75,7 +75,7 @@ def rated_article_chart(request):
 
     x_index = pd.to_datetime(data.index).tolist()
     
-    title = 'Articles from {} rated by the TransMediaWatch style-guide'.format(source.title)
+    title = 'Articles from {} rated by the TransMediaWatch style-guide'.format(source.name)
     
     fig = figure(plot_width=768, plot_height=512, x_axis_type="datetime", title=title,)
     

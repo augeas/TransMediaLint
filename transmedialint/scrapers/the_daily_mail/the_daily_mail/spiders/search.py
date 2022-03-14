@@ -4,9 +4,10 @@ import logging
 
 import scrapy
 
+from scrapers.article_items import response_article
 from transmedialint import settings as tml_settings
 
-base_url = 'http://www.dailymail.co.uk/home/search.html'
+base_url = 'https://www.dailymail.co.uk/home/search.html'
 search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
 
 
@@ -22,6 +23,7 @@ def search_item_date(ts):
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
+    source = 'The Daily Mail'
     
     
     def __init__(self, query=DEFAULT_QUERY, last_scraped=None, **kwargs):
@@ -35,10 +37,10 @@ class SearchSpider(scrapy.Spider):
 
 
     def search_pages(self, offset):
-        urls = ('?'.join([base_url, search_args.format(0, 50, term)]) for term
+        urls = ('?'.join([base_url, search_args.format(offset, 50, term)]) for term
             in self.terms)
         return (scrapy.Request(url=url, callback=self.parse,
-            meta={'offset': offset}) for url in urls)
+            meta={'offset': offset}, dont_filter=True) for url in urls)
         
     
     def start_requests(self):
@@ -80,14 +82,15 @@ class SearchSpider(scrapy.Spider):
         
         requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
             meta=m) for m in new]
-        
-        if requests:
+
+        if len(requests):
             yield from requests
             yield from self.search_pages(next_offset)
-        
-        
-    def parse_article(self, response):
-        logging.info('DAILY MAIL: SCRAPING: {} '.format(response.meta['title']))
-        yield {**response.meta, **{'content': response.text,
-            'source': 'The Daily Mail'}}
+        else:
+            logging.debug("NO RESULTS FROM: {}".format(response.url))
+      
+      
+    def parse_article(self, response):        
+        yield response_article(self.source, response)
+
         

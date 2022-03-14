@@ -1,12 +1,12 @@
 
 from django.shortcuts import render
-
+from django_filters import FilterSet
 from rest_framework.decorators import action
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from sources.crawlers import all_the_crawlers
-from sources.models import Source
+from sources.models import Source, Article
 from sources import serializers
 
 
@@ -18,6 +18,17 @@ class SourceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.SourceSerializer
 
 
+class ArticleFilter(FilterSet):
+    class Meta:
+        model = Article
+        fields = ('author__slug',)
+
+
+class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Article.objects.all()
+    serializer_class = serializers.ArticleSerializer
+    filterset_class = ArticleFilter
+    
 
 class CrawlerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = all_the_crawlers
@@ -43,4 +54,5 @@ class CrawlerViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': 'crawler already running'})
         crawler.scrape()
         return Response({'crawler': pk, 'error': False}) 
+    
 

@@ -1,14 +1,10 @@
 
-FROM python:3.6-alpine
+FROM FROM python:3.9-slim
 
 COPY transmedialint/scraper_requirements.txt transmedialint/requirements.txt
 
-RUN apk update \
-  && apk add --virtual build-deps gcc linux-headers python3-dev musl-dev libffi-dev libxml2-dev libxslt-dev \
-  && apk add bash curl python3 postgresql-dev libzmq libffi libxml2 libxslt \
-  && pip install --upgrade pip \
-  && pip install -r transmedialint/requirements.txt \
-  && apk del build-deps
+RUN pip install -r transmedialint/requirements.txt \
+    && python -m spacy download en_core_web_sm
 
 ADD transmedialint /transmedialint
 

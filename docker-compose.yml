@@ -1,4 +1,4 @@
-version: '2'
+version: '3.9'
 
 services:
 
@@ -16,9 +16,8 @@ services:
       
   db:
     container_name: tml_pg
-    image: postgres
-    ports:
-     - "5432:5432"
+    image: postgres:14
+    restart: always
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
@@ -34,6 +33,7 @@ services:
 
   transmedialint:
     build: .
+    restart: always
     command: "/transmedialint/run.sh"
     ports:
       - "8000:8000"

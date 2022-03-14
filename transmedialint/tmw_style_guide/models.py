@@ -21,7 +21,7 @@ class Annotation(models.Model):
     position = models.IntegerField()
     
     class Meta:
-        unique_together = (("article", "position"),)
+        unique_together = (("article", "text", "position"),)
         
     def __str__(self):
         return ': '.join([self.tag,' in '.join(['"'+self.text+'"', self.article.slug])])

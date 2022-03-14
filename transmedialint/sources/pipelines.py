@@ -2,7 +2,6 @@
 import itertools
 import logging
 import os
-import pytz
 import re
 
 from dateutil import parser as dateparser
@@ -11,6 +10,7 @@ from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
 from django.utils.text import slugify
 import requests
+from scrapy.exceptions import DropItem
 
 from sources import models
 
@@ -25,25 +25,21 @@ class ArticlePipeline(object):
     def __init__(self):
         self.sources = {}
         self.authors = {}
-        self.timezones = {}
         
     def get_source(self, name):
         source = self.sources.get(name)
         if not source:
-            source = models.Source.objects.get(title=name)
+            source, created = models.Source.objects.get_or_create(name=name)
+            if created:
+                source.save()
             self.sources[name] = source
-            self.timezones[name] = pytz.timezone('/'.join([
-                source.region, source.city]))
+
 
         return source
     
 
     def item_timestamp(self, item):
-        try:
-            return self.timezones[item['source']].localize(
-                dateparser.parse(item['date_published']))
-        except:
-            return dateparser.parse(item['date_published'])
+        return dateparser.parse(item['date_published'])
 
     
     def clean_names(self, names):
@@ -75,7 +71,7 @@ class ArticlePipeline(object):
     def get_authors(self,byline):
         names = list(map(self.capital_name, self.clean_names(byline)))
         
-        existing = list(filter(None,map(self.authors.get,names)))
+        existing = list(filter(None,map(self.authors.get, names)))
         
         new_names = set(names) - set(existing)
         
@@ -96,16 +92,11 @@ class ArticlePipeline(object):
                 date_published = self.item_timestamp(item),
                 date_retrieved = localtimezone.now())
         except:
-            art = None
-            created = None
-                
-        if art is None or not created:
-            logging.info('SKIPPED: '+slug)
-            return item
-        
+            raise DropItem('SKIPPED: '+slug)
+
         art_authors = self.get_authors(item['byline'])
         
-        art.author.add(*[a.id for a in art_authors])
+        art.author.add(*art_authors)
 
         art.page.save(slug, ContentFile(item['content']),
             save=True)
@@ -125,6 +116,8 @@ class ArticlePipeline(object):
         solr_files = {'file': ('article.html', item['content'])}
         requests.post(SOLR_URL, data=solr_fields, files=solr_files)
         
-        return {**item, **{'article_id': art.id, 'source_id': art.source.id,
-            'created': created}}
+        item['article_id'] = art.id
+        item['source_id'] = art.source.id
+        
+        return item
     

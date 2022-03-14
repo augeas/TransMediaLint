@@ -25,7 +25,7 @@ function wait_for_it(splash, sel)
 end
 
 function main(splash, args)
-
+  splash:init_cookies(splash.args.cookies)
   assert(splash:go('https://www.thetimes.co.uk/'))
   wait_for_it(splash, 'iframe')
     
@@ -51,11 +51,14 @@ function main(splash, args)
   
   wait_for_it(splash, 'a[aria-controls="my-account-menu"]')
   
+  entries = splash:history()
+  last_response = entries[#entries].response  
+  
   return {
     url = splash:url(),
     html = splash:html(),
-    --http_status = last_response.status,
-    --headers = last_response.headers,
+    http_status = last_response.status,
+    headers = last_response.headers,
     png = splash:png(),
     har = splash:har(),
     cookies = splash:get_cookies(),
@@ -69,7 +72,7 @@ SEARCH_PAGE_URL = 'https://www.thetimes.co.uk/search?p={}&q={}&source=search-pag
 
 class TimesSpider(scrapy.Spider):
     name = 'search'
-    start_urls = ['https://login.thetimes.co.uk/']
+    start_urls = ['https://www.thetimes.co.uk']
 
 
     def __init__(self, **kwargs):
@@ -98,13 +101,21 @@ class TimesSpider(scrapy.Spider):
         yield SplashRequest(self.start_urls[0], callback=self.after_login,
             endpoint='/execute', args={
                 'lua_source': __LOGIN_SCRIPT__, 'timeout': 60,
-                'username': self.username, 'password': self.password})
+                'username': self.username, 'password': self.password},
+            meta = {'splash': {'session_id': 1}})
 
 
     def after_login(self, response):
+        #headers = {k.encode('ascii'): v.encode('ascii')
+        #    for k,v in response.headers.items()}
+
+        print(headers)
+        
+        cookies = {c.name: c.value for c in response.cookiejar}
         for term in self.terms:
             yield scrapy.Request(url=SEARCH_URL.format(term),
-                callback=self.parse_search, meta={'page': 1, 'term': term})
+                callback=self.parse_search,
+                meta={'page': 1, 'term': term, 'splash_cookies': cookies})
                                  
 
     def parse_search(self, response):
@@ -118,14 +129,16 @@ class TimesSpider(scrapy.Spider):
         for res in new_results:
             #print('https://www.thetimes.co.uk'+res)
             yield scrapy.Request(url='https://www.thetimes.co.uk'+res,
-                callback = self.parse_article)
+                callback = self.parse_article,
+                cookies=response.meta['splash_cookies'])
 
         if len(response.xpath('//a[@aria-label="Next page"]')):
             next_page = response.meta['page'] + 1
             term = response.meta['term']
             yield scrapy.Request(url=SEARCH_PAGE_URL.format(next_page, term),
                 callback=self.parse_search,
-                meta={'page': next_page, 'term': term})
+                meta={'page': next_page, 'term': term,
+                    'splash_cookies': response.meta['splash_cookies']})
         
 
     def parse_article(self, response):
@@ -144,8 +157,13 @@ class TimesSpider(scrapy.Spider):
         
         preview = response.xpath('//h2[@role="heading"]/text()').extract_first()    
 
-        #print('ARTICLE: {}'.format(title))
+        print('ARTICLE: {}'.format(title))
+        if response.xpath('//a[aria-controls="my-account-menu"]').extract():
+            print('LOGGED IN...')
         
+        if response.xpath('//div[@id="paywall-portal-page-footer"]').extract():
+            print('PAYWALL...')
+
         yield {'title': title, 'url': response.url, 'preview': preview,
             'byline': byline, 'date_published': timestamp,
             'content': response.text, 'source': 'The Times'}

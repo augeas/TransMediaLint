@@ -1,15 +1,29 @@
-from django.db.models import Count
-from django_filters import rest_framework as filters
-from django_filters.rest_framework import DjangoFilterBackend
-from django.shortcuts import render
 
+from django.db.models import Count
+from django.shortcuts import render
+from django_filters import FilterSet
 from rest_framework import generics
+from rest_framework import status, viewsets
 
 from sources.models import Article, Author
-from tmw_style_guide.models import Annotation
+from tmw_style_guide.models import Annotation, RatedArticle
 from tmw_style_guide import serializers
 
 
+class RatedArticleFilter(FilterSet):
+    class Meta:
+        model = RatedArticle
+        fields = ('article__slug', 'article__author__slug')
+
+
+class RatedArticleViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = RatedArticle.objects.all().order_by('-offensive',
+        '-inaccurate', '-inappropriate')
+    serializer_class = serializers.RatedArticleSerializer
+    filterset_class = RatedArticleFilter
+    
+
+'''
 class LintedArticleList(generics.ListCreateAPIView):
     queryset = Article.objects.all().order_by('-date_published')
     serializer_class = serializers.LintedArticleSerializer
@@ -57,3 +71,4 @@ class WorstAuthors(generics.ListCreateAPIView):
     filter_class = AuthorFilter
     http_method_names = ['get']
  
+'''

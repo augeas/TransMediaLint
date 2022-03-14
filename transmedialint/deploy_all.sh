@@ -12,7 +12,7 @@ for dir in $(find . -maxdepth 1 -mindepth 1 -type d); do
         scrapyd-deploy --build-egg=scrape.egg
         rm scrape.egg
         python3 setup.py sdist && python3 setup.py install
-        scrapyd-deploy --egg=./dist/project-1.0-py3.8.egg
+        scrapyd-deploy --egg=./dist/project-1.0-py3.9.egg
     fi
     cd ..
 done

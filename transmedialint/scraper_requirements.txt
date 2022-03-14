@@ -1,11 +1,12 @@
 bs4
+psycopg2-binary
 html2text
 python-dateutil
 django-filter
 djangorestframework
 django
-psycopg2
 requests
 scrapy
 scrapyd
 scrapyd-client
+spacy

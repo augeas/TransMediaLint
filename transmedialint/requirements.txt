@@ -1,6 +1,7 @@
 django
 django-filter
 djangorestframework
+psycopg2-binary
 urllib3
 requests
 bs4
@@ -12,7 +13,6 @@ bokeh
 numpy
 pandas
 spacy
-psycopg2
 python-scrapyd-api
 scrapyd-client
 scrapyd

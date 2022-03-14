@@ -15,7 +15,7 @@ class SourceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Source
-        fields = ('title', 'slug')
+        fields = ('name', 'slug')
 
         
 class ArticleSerializer(serializers.ModelSerializer):
@@ -24,6 +24,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ('title', 'slug', 'source', 'url', 'author', 'date_published')
+        depth = 1
         
         
 class CrawlerSerializer(serializers.Serializer):
