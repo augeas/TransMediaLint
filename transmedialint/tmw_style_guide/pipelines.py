@@ -94,7 +94,11 @@ class TMLintPipeline(object):
             
         rated['article_id'] = art_id
         
-        obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
+        try:
+            obj, created = tmw_models.RatedArticle.objects.get_or_create(**rated)
+        except:
+            raise DropItem("EXISTING RATED ARTICLE: "+item['title'])
+
 
         if created:
             obj.save()

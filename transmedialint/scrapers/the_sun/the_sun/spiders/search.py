@@ -5,13 +5,18 @@ import logging
 from dateutil import parser
 import scrapy
 
+from transmedialint import settings as tml_settings
+
+
+DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
+
 
 class SearchSpider(scrapy.Spider):
     name = "search"
     
     
     def __init__(self, *args, **kwargs):
-        query = kwargs.get('query', None)
+        query = kwargs.get('query', DEFAULT_QUERY)
         if query:
             self.terms = query.split()
         else:
@@ -26,9 +31,7 @@ class SearchSpider(scrapy.Spider):
     def start_requests(self):
         urls = list(map('https://www.thesun.co.uk/?s={}'.format,
             self.terms))
-        
-        logging.info(' '.join(urls))
-        
+                
         yield from (scrapy.Request(url=u, callback=self.parse,
             meta={'page': 1, 'term': t}) for u, t in zip(urls,self.terms))
 
@@ -47,7 +50,7 @@ class SearchSpider(scrapy.Spider):
         
         if new:
             yield from (scrapy.Request(url=u, callback=self.parse_article)
-                for t,u in new)
+                for t, u in new)
         
             url = 'https://www.thesun.co.uk/page/{}/?s={}'.format(page,
                 response.meta['term'])
@@ -57,7 +60,8 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse_article(self, response):
-        datespan, timespan = response.css('.article__published')[0].xpath('./span/text()').extract()
+        timespan, datespan = response.css('.article__published')[0].xpath(
+            './span/text()').extract()
         
         day, month, year = datespan.split()
         

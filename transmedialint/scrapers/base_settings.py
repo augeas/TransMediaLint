@@ -1,6 +1,6 @@
 
 
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'INFO'
 
 ITEM_PIPELINES = {
     'sources.pipelines.ArticlePipeline': 300,

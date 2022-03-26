@@ -1,4 +1,6 @@
 
+from scrapy.exceptions import DropItem
+
 from tml_corpus.models import ArticleEntity, NamedEntity
 
 
@@ -40,10 +42,13 @@ class NERPipeline(object):
         
         for ent in all_entities:
             
-            art_ent = ArticleEntity(
-                **dict(zip(__art_ent_fields__,
-                (art_id, entities[ent[0]].id, entities[ent[0]].id,
-                ent[-1]))))
-            art_ent.save()
+            try:
+                art_ent = ArticleEntity(
+                    **dict(zip(__art_ent_fields__,
+                    (art_id, entities[ent[0]].id, entities[ent[0]].id,
+                    ent[-1]))))
+                art_ent.save()
+            except:
+                raise DropItem('CANNOT SAVE ARTICLE ENTITY: {}'.format(e[1]) )
             
         return item

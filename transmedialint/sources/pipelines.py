@@ -13,11 +13,12 @@ import requests
 from scrapy.exceptions import DropItem
 
 from sources import models
-
-
+from transmedialint import settings as tml_settings
 
 SOLR_URL = 'http://{}:8983/solr/articles/update/extract'.format(
     os.environ.get('SOLR_HOST', 'localhost'))
+
+PATTERNS = list(map(re.compile, tml_settings.DEFAULT_TERMS))
 
 
 class ArticlePipeline(object):
@@ -82,7 +83,13 @@ class ArticlePipeline(object):
         
     def process_item(self, item, spider):
         slug = slugify(item['title'])
-        
+
+        try:
+            first_match = itertools.chain.from_iterable(
+                p.finditer(item['content']) for p in PATTERNS).__next__()
+        except:
+            raise DropItem('NO MATCHES: '+slug)
+
         try:
             art, created = models.Article.objects.get_or_create(
                 url=item['url'],
