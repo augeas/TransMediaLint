@@ -49,6 +49,6 @@ class NERPipeline(object):
                     ent[-1]))))
                 art_ent.save()
             except:
-                raise DropItem('CANNOT SAVE ARTICLE ENTITY: {}'.format(e[1]) )
+                raise DropItem('CANNOT SAVE ARTICLE ENTITY: {}'.format(ent[1]) )
             
         return item

@@ -44,6 +44,7 @@ class CorpusBuilder(object):
         except:
             yield from map(self.corpus_dict.doc2bow, self.get_articles())
 
+
 class LdaCorpusBuilder(object):
     
     def __init__(self,source_slug):

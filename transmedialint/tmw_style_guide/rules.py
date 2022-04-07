@@ -47,7 +47,7 @@ regexRules = [(r'post.op', offensive, 'post-op'),
     (r'genetically (?:fe)?male', inaccurate, 'genetically male/female'),
     (r'passing', inappropriate, 'passing'),
     (r'stealth', inappropriate, 'stealth'),
-    (r'shim', offensive, 'shim'),
+    (r'shim(?=[^A-Za-z])', offensive, 'shim'),
     (r'bathroom bill', defamatory, 'bathroom bill')
     ]
               

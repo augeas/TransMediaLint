@@ -1,11 +1,12 @@
 
 import itertools
+from io import BytesIO
 import logging
 import os
 import re
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from dateutil import parser as dateparser
-
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
 from django.utils.text import slugify
@@ -86,7 +87,7 @@ class ArticlePipeline(object):
 
         try:
             first_match = itertools.chain.from_iterable(
-                p.finditer(item['content']) for p in PATTERNS).__next__()
+                p.finditer(item['content'].lower()) for p in PATTERNS).__next__()
         except:
             raise DropItem('NO MATCHES: '+slug)
 
@@ -105,10 +106,16 @@ class ArticlePipeline(object):
         
         art.author.add(*art_authors)
 
-        art.page.save(slug, ContentFile(item['content']),
+        zip_bytes = BytesIO()
+        fname = '.'.join((slug, 'html'))
+        
+        with ZipFile(zip_bytes, 'w') as zipfile:
+            zipfile.writestr(fname, item['content'], ZIP_DEFLATED)
+
+        art.page.save(slug + '.zip', ContentFile(zip_bytes.getbuffer()),
             save=True)
         if item.get('preview'):
-            art.preview.save(slug+'_preview', ContentFile(item['preview']))
+            art.preview.save(slug + '_preview', ContentFile(item['preview']))
 
         art.save()
 

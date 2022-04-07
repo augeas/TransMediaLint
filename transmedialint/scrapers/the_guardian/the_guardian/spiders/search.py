@@ -6,9 +6,12 @@ import os
 from dateutil import parser
 import scrapy
 
+from scrapers.article_items import ArticleItem
+
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
+    source = 'The Guardian'
 
     base_url = ('https://content.guardianapis.com/search?api-key={}&q={}'
         +'&page={}&page-size=50&order-by=newest'
@@ -27,7 +30,6 @@ class SearchSpider(scrapy.Spider):
         else:
             self.last_scraped = datetime.fromtimestamp(0).isoformat()
 
-        
         self.key = kwargs.get('key', os.environ.get('GUARDIAN_KEY'))
         
         super().__init__(**kwargs)
@@ -39,7 +41,7 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse(self, response):
-        json_response = json.loads(response.body_as_unicode())
+        json_response = json.loads(response.text)
         
         page = json_response['response']['currentPage']
     
@@ -52,13 +54,15 @@ class SearchSpider(scrapy.Spider):
         
         if new_results:
         
-            yield from ({'source': 'The Guardian',
+            items = ({'source': 'The Guardian',
                 'title': res['fields']['headline'],
                 'byline': res['fields'].get('byline', 'The Guardian'),
                 'date_published': res['timestamp'],
                 'url': res['webUrl'],
                 'content': res['fields']['body']}
                 for res in new_results)
+        
+            yield from (ArticeItem(**item) for item in items)
         
             if page < json_response['response']['pages']:
                 url = self.base_url.format(self.key, self.terms, page+1)

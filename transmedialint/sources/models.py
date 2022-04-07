@@ -1,3 +1,6 @@
+
+from zipfile import ZipFile
+
 from bs4 import BeautifulSoup
 
 from django.db import models
@@ -17,7 +20,6 @@ class Source(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-
 
 
 class Author(models.Model):
@@ -46,18 +48,46 @@ class Article(models.Model):
     broken = models.BooleanField(default=False)
 
 
+    def read_zip(self):
+        zip_path = self.page.path
+
+        with ZipFile(zip_path) as zip:
+            fname = zip.infolist()[0].filename
+            with zip.open(fname) as fl:
+                return fl.read().decode('utf-8')
+
+
     def clean_strings(self):
-        soup = BeautifulSoup(self.page.read(),'html5lib')
+        soup = BeautifulSoup(self.read_zip(), 'html5lib')
         for tag in soup(['script','img','style']):
             tag.extract()
         yield from soup.stripped_strings
-        self.page.close()
+
 
         
     def text(self):
         return '\n'.join(self.clean_strings())
 
-    
+
+    def as_item(self):
+        try:
+            preview = self.preview.read().decode('utf-8')
+        except:
+            preview = None
+        
+        return {
+            'content': self.read_zip(),
+            'title': self.title,
+            'date_published': self.date_published.isoformat(),
+            'url': self.url,
+            'byline': ' & '.join(auth.name for auth in self.author.get_queryset()),
+            'preview': preview,
+            'article_id': self.id,
+            'source_id': self.source.id
+        }
+
+
+
     def __str__(self):
         return self.slug
 

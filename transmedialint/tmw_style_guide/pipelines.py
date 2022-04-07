@@ -47,7 +47,7 @@ class TMLintPipeline(object):
                 
                 
     def transgender_noun(self, tok):
-        return tok.pos_ == 'NOUN' and tok.lemma_.startswith('transgend')
+        return tok.pos_ == 'NOUN' and tok.text.lower() == 'transgender'
     
 
     def process_item(self, item, spider):
@@ -81,8 +81,10 @@ class TMLintPipeline(object):
             if created:
                 obj.save()
                 
-        rated = {tag:len(list(count)) for tag, count in
-            itertools.groupby(sorted([a.tag for a in annotations]))}
+        rated = {tag: len(list(count)) for tag, count in
+            itertools.groupby(sorted([a.tag for a in annotations
+            if a.label != 'transgender as a noun']))
+        }
         
         if sum([rated.get(t,0) for t in rules.rule_tags[:-1]]) == 0:
             if rated.get(rules.rule_tags[-1], 0) == 0:

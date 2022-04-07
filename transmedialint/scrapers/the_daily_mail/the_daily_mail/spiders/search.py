@@ -36,11 +36,14 @@ class SearchSpider(scrapy.Spider):
         super().__init__(**kwargs)    
 
 
-    def search_pages(self, offset):
+    def search_pages(self, offset, terms=None):
+        if not terms:
+            terms = self.terms
         urls = ('?'.join([base_url, search_args.format(offset, 50, term)]) for term
-            in self.terms)
+            in terms)
         return (scrapy.Request(url=url, callback=self.parse,
-            meta={'offset': offset}, dont_filter=True) for url in urls)
+            meta={'offset': offset, 'term': term}, dont_filter=True)
+            for url, terms in zip(urls, terms))
         
     
     def start_requests(self):
@@ -48,8 +51,11 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse(self, response):
-        next_offset = 50 + response.meta.get('offset', 0)
-        logging.info('DAILY MAIL, NEXT OFFSET: {}'.format(next_offset))
+        offset = response.meta.get('offset', 0)
+        next_offset = 50 + offset
+        search_term = response.meta.get('term')
+        logging.info('DAILY MAIL: {} NEXT OFFSET: {}'.format(
+            search_term, next_offset))
         
         articles = response.css('.sch-res-content')
         anchors = articles.xpath('./h3').css('.sch-res-title').xpath(
@@ -84,10 +90,13 @@ class SearchSpider(scrapy.Spider):
             meta=m) for m in new]
 
         if len(requests):
+            logging.info('DAILY MAIL: {} FOUND {} ARTICLES AT OFFSET {}'.format(
+                search_term, len(requests). offset))
             yield from requests
-            yield from self.search_pages(next_offset)
+            yield from self.search_pages(next_offset, terms=(search_term,))
         else:
-            logging.debug("NO RESULTS FROM: {}".format(response.url))
+            logging.info("DAILY MAIL: {}, NO RESULTS FROM: {}".format(
+                search_term, response.url))
       
       
     def parse_article(self, response):        

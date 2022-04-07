@@ -5,6 +5,7 @@ import logging
 from dateutil import parser
 import scrapy
 
+from scrapers.article_items import ArticleItem
 from transmedialint import settings as tml_settings
 
 
@@ -80,7 +81,7 @@ class SearchSpider(scrapy.Spider):
 
         preview = response.css('.article__kicker').xpath('./text()').extract()[0]
 
-        yield {'title': title, 'byline': author, 'preview': preview,
-            'url': response.url,'date_published':timestamp,
-            'content': response.text, 'source': 'The Sun'}
+        yield ArticleItem(**{'title': title, 'byline': author,
+            'preview': preview, 'url': response.url,'date_published': timestamp,
+            'content': response.text, 'source': 'The Sun'})
 
