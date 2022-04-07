@@ -1,46 +1,46 @@
 
-
 from django.core.management.base import BaseCommand
 
 from sources.models import Source, Article
-from tmw_style_guide.models import Annotation, RatedArticle
-from tmw_style_guide.pipelines import TMLintPipeline
+from tml_corpus.models import ArticleEntity
+from tml_corpus.pipelines import NERPipeline
 
 
 class Command(BaseCommand):
     
-    def reannotate(self, source):
-        self.stdout.write('Re-annotating articles for {}...'.format(
+    def find_entities(self, source):
+        self.stdout.write('Finding entities for {}...'.format(
             source.name))
         
-        pipeline = TMLintPipeline()
+        pipeline = NERPipeline()
+        
         articles = Article.objects.filter(source=source)
-
+        
         for article in articles.iterator():
-            Annotation.objects.filter(article=article).delete()
-            RatedArticle.objects.filter(article=article).delete()
+            ArticleEntity.objects.filter(article=article).delete()
+            
             try:
                 pipeline.process_item(article.as_item(), None)
-                self.stdout.write('re-annotated: {}'.format(
+                self.stdout.write('found entities for: {}'.format(
                     article.slug))
             except:
-                self.stdout.write('could not reannotate: {}'.format(
+                self.stdout.write('could not find entities for: {}'.format(
                     article.slug))
-            
 
+            
+            
+            
+        
+        
     def add_arguments(self, parser):
         parser.add_argument('slugs', nargs='+', type=str)
-
-    
+        
+        
     def handle(self, *args, **options):
         
         for source_slug in options.get('slugs', []):
             try:
                 source = Source.objects.get(slug=source_slug)
-                self.reannotate(source)
+                self.find_entities(source)
             except:
                 source = None
-                
-            
-
-            

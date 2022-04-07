@@ -54,7 +54,12 @@ class TMLintPipeline(object):
         
         art_id = item.get('article_id', False)
         
-        raw_text = html2text.html2text(item['content'])
+        handler = html2text.HTML2Text()
+        handler.ignore_links = True
+        handler.ignore_emphasis = True
+        handler.ignore_images = True
+        
+        raw_text = handler.handle(item['content'])
         
         annotations = list(self.annotate(raw_text))
 

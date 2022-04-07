@@ -1,8 +1,12 @@
 
+import html2text
 from scrapy.exceptions import DropItem
+import spacy
 
 from tml_corpus.models import ArticleEntity, NamedEntity
 
+
+__nlp__ = spacy.load("en_core_web_sm") 
 
 __entity_fields__ = ('text', 'label')
 __art_ent_fields__ = ('article_id', 'entity_id', 'position')
@@ -12,7 +16,7 @@ class NERPipeline(object):
     
     def entity_filter(self, ent):
         return ent.label_ not in ('PRODUCT', 'DATE', 'TIME', 'PERCENT', 'MONEY',
-            'QUANTITY', 'ORDINAL', 'CARDINAL')
+            'QUANTITY', 'ORDINAL', 'CARDINAL') and 'http' not in ent.text
 
     
     def process_item(self, item, spider):
@@ -22,8 +26,17 @@ class NERPipeline(object):
         doc = item.get('doc')
         
         if doc is None:
-            return item
-        
+            handler = html2text.HTML2Text()
+            handler.ignore_links = True
+            handler.ignore_emphasis = True
+            handler.ignore_images = True
+            
+            raw_text = handler.handle(item['content'])
+            
+            doc = __nlp__(raw_text)
+            item['doc'] = doc
+            
+
         all_entities = [('_'.join((e.text, e.label_)),
             e.text, e.label_, e.start_char)
             for e in filter(self.entity_filter, doc.ents)] 
