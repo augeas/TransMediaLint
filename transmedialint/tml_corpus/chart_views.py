@@ -14,7 +14,7 @@ from sources.models import Source
 from tml_corpus.models import ArticleEntity
 
 
-def entity_stack(source, page, df, ranks, width=1024, height=512,
+def entity_stack(source, page, df, ranks, width=1536, height=512,
     page_size=20):
     
     start = page * page_size
@@ -82,7 +82,7 @@ def source_entity_chart(request):
         'entity__text__count', ascending=False).rename(
         columns={'entity__text__count': 'total_count'})
         
-    pages = len(top_entities[top_entities.total_count>=10]) // 20
+    pages = min(10, len(top_entities[top_entities.total_count>=10]) // 20)
     
     charts = [entity_stack(src, page, df, top_entities)
         for page in range(pages)]
