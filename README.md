@@ -123,12 +123,17 @@ given that this refers to a court case concerning transphobic tweets, it is not
 surprising that it appears in annotated articles, as does the similar
 [Margaret Nelson](https://www.pinknews.co.uk/2021/02/02/innocent-smoothies-twitter-drinks-trans-transgender-rights-twitter-margaret-nelson-pensioner/) case. As for the other entities, "Lucas"
 may refer to [Matt](https://www.pinknews.co.uk/2021/10/01/matt-lucas-lgb-alliance-trans/) or
-[Lucia Lucas](https://www.pinknews.co.uk/2019/10/08/opera-singer-lucia-lucas-makes-history-as-first-trans-star-to-perform-with-english-national-opera/), and former Green Party LGBT spokesperson
-[Aimee Challenor](https://www.pinknews.co.uk/2017/07/07/green-party-lgbtq-spokesperson-i-disagree-with-pride-but-ill-still-be-marching/). 
-
-
+[Lucia Lucas](https://www.pinknews.co.uk/2019/10/08/opera-singer-lucia-lucas-makes-history-as-first-trans-star-to-perform-with-english-national-opera/),
+both LGBT individuals, and former Green Party LGBT spokesperson
+[Aimee Challenor](https://www.pinknews.co.uk/2017/07/07/green-party-lgbtq-spokesperson-i-disagree-with-pride-but-ill-still-be-marching/)
+is included.
 
 ![named entities from Spectator articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_green_entities.png)
 ![named entities from Spectator articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_red_entities.png)
 
+For Spiked, the most common entities are contributors, but for entities in
+annotated articles, [Stonewall](https://www.stonewall.org.uk/) rises in
+prominence.
 
+![named entities from Spiked articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/spiked_green_entities.png)
+![named entities from Spiked articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/spiked_red_entities.png)
