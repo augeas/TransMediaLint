@@ -177,5 +177,54 @@ is easiest to run crawers via curl:
 curl http://localhost:6800/schedule.json -d project=the_sun -d spider=search
 ```
 
+You can view the [Scrapyd](https://scrapyd.readthedocs.io/en/stable/) logs at
+[http://localhost:6800](http://localhost:6800). Current crawler projects
+include:
+
+* `spiked`
+* `the_critic`
+* `the_daily_mail`
+* `the_guardian`
+* `the_spectator`
+* `the_sun`
+
+It will take *a long time* to crawl and annotate "The Daily Mail". Crawling
+"The Guardian" will require obtaining an
+[API key](https://open-platform.theguardian.com/access/).
+
+Start the servers with:
+
+```bash
+GUARDIAN_KEY=YOUR_API_KEY docker-compose up
+```
+
+The current state of the API created with the
+[Django Rest Framework](https://www.django-rest-framework.org/)
+can be explored at: [http://localhost:8000/api/](http://localhost:8000/api/)
+
+The various charts can be viewed at:
+
+* `http://localhost:8000/charts/rated_articles?source=SLUG`
+* `http://localhost:8000/charts/annotations?source=SLUG`
+* `http://localhost:8000/charts/source_entities?source=SLUG`
+* `http://localhost:8000/charts/rated_entities?source=slug&rating=red`
+
+where `SLUG` is one of:
+
+* `spiked`
+* `the-critic`
+* `the-daily-mail`
+* `the-guardian`
+* `the-spectator`
+* `the-sun`
+
+### TO DO
+
+- [ ] a (probably) AngularJS front-end to consume the API
+- [ ] more web-crawlers for more sources
+- [ ] more charts
+- [ ] a search API to put [Solr](https://solr.apache.org/) to good use
+- [ ] preparing a VirtualBox appliance for non-techical users.
+- [ ] .csv downloads
 
 
