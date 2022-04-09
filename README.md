@@ -44,6 +44,11 @@ state on a public-facing webserver.
 All this software does is to *Count Things*. Interpretation should be left to
 the reader.
 
+For more thorough research from the trans community itself, beyond this
+automated approach you are strongly
+recommended [The Trans Safety Network](https://transsafety.network/). Feature,
+and pull request, or better still, forks from the LGBT community are welcome.
+
 ## Article Frequency
 
 By default, articles containing the terms `transgender`, `transexual` and
@@ -131,9 +136,46 @@ is included.
 ![named entities from Spectator articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_green_entities.png)
 ![named entities from Spectator articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_red_entities.png)
 
-For Spiked, the most common entities are contributors, but for entities in
+For "Spiked", the most common entities are contributors, but for entities in
 annotated articles, [Stonewall](https://www.stonewall.org.uk/) rises in
 prominence.
 
 ![named entities from Spiked articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/spiked_green_entities.png)
 ![named entities from Spiked articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/spiked_red_entities.png)
+
+The same happens for "The Critic".
+
+![named entities from The Critic articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/the_critic_green_entities.png)
+![named entities from The Critic articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/the_critic_red_entities.png)
+
+
+## Getting Started
+
+This software is not yet ready for non-techical researchers. To get started,
+first install [Docker](https://docs.docker.com/get-docker/) and
+[Docker-compose](https://docs.docker.com/compose/install/). Then, clone the
+repo, build the container and initialize the database:
+
+```bash
+git clone https://github.com/augeas/TransMediaLint.git
+cd TransMediaLint
+docker-compose build
+./init_db
+```
+
+You can then start the servers with:
+
+```bash
+docker-compose up
+```
+
+It will take a little while for the various crawlers to be deployed to
+[Scrapyd](https://scrapyd.readthedocs.io/en/stable/). At the moment, it
+is easiest to run crawers via curl:
+
+```bash
+curl http://localhost:6800/schedule.json -d project=the_sun -d spider=search
+```
+
+
+
