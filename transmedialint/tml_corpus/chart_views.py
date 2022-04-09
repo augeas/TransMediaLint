@@ -1,4 +1,6 @@
 
+from itertools import chain
+
 from bokeh import palettes
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
@@ -12,10 +14,11 @@ import pandas as pd
 
 from sources.models import Source
 from tml_corpus.models import ArticleEntity
+from tmw_style_guide.models import RatedArticle
 
 
-def entity_stack(source, page, df, ranks, width=1536, height=512,
-    page_size=20):
+def entity_stack(source, page, df, ranks, width=1024, height=512,
+    page_size=20, palette='Category20', suffix=None):
     
     start = page * page_size
     end = page_size * (page + 1)
@@ -23,11 +26,14 @@ def entity_stack(source, page, df, ranks, width=1536, height=512,
     title = 'Named Entities from {}, rank {} to {}'.format(
         source.name, start + 1, end)
     
+    if suffix:
+        title = ' '.join((title, suffix))
+    
     fig = figure(plot_width=width, plot_height=height, x_axis_type="datetime",       
         title=title)
     
     entities = ranks[start:end]
-    colour = palettes.d3['Category20'][max(len(entities), 20)]
+    colour = palettes.d3[palette][max(len(entities), 20)]
     
     entities_by_month = df.merge(entities, on='entity__text')[
         ['entity__text', 'month', 'entity__text__count']].pivot(
@@ -59,15 +65,19 @@ def entity_stack(source, page, df, ranks, width=1536, height=512,
     return fig
 
 
-def source_entity_chart(request):
+def get_source(request):
     slug = request.GET.get('source')
     if not slug:
         raise Http404('No source specified')
     
     try:
-        src = Source.objects.get(slug=slug)
+        return Source.objects.get(slug=slug)
     except:
         raise Http404('No such source: {}'.format(slug))
+
+
+def source_entity_chart(request):
+    src = get_source(request)
     
     query = ArticleEntity.objects.filter(article__source=src).values(
         'article__date_published', 'entity__text').annotate(
@@ -93,6 +103,57 @@ def source_entity_chart(request):
     
     return render(request, 'charts/chart.html',
         {'script':script, 'div': div, 'title':title})
-    
 
+
+def entities_by_article(art_ids):
+    return ArticleEntity.objects.filter(article__pk__in=art_ids).values(
+        'article__date_published', 'entity__text').annotate(
+        month=Trunc('article__date_published', 'month')).values(
+        'month', 'entity__text').annotate(Count('entity__text')).order_by(
+        'month', 'entity__text__count')
+
+
+def annotated_entity_chart(request):
+    src = get_source(request)
+    
+    rating = request.GET.get('rating', 'red')
+    if rating not in ('red', 'green'):
+        rating = 'red'
+    
+    
+    query = RatedArticle.objects.filter(article__source=src,
+        rating=rating).annotate(month=Trunc('article__date_published',
+        'month')).values('article__id', 'month').order_by('month')
+        
+    article_df = pd.DataFrame(query)
+         
+    article_lists = article_df.groupby('month')['article__id'].apply(list)
+        
+    entity_df = pd.DataFrame(chain.from_iterable(
+        map(entities_by_article, article_lists)))
+
+    top_entities = entity_df.groupby('entity__text').agg(
+        {'entity__text__count': 'sum'}).reset_index().sort_values(
+        'entity__text__count', ascending=False).rename(
+        columns={'entity__text__count': 'total_count'})        
+        
+    pages = min(10, len(top_entities[top_entities.total_count>=10]) // 20)
+    
+    if rating == 'red':
+        palette = 'Category20b'
+        suffix = '(articles rated red)'
+    else:
+        palette = 'Category20c'
+        suffix = '(articles rated green)'
+    
+    charts = [entity_stack(src, page, entity_df, top_entities,
+        palette=palette, suffix=suffix) for page in range(pages)]
+            
+    script, div = components(column(*charts))
+    
+    title = 'Named Entities from Articles rated {} in {}'.format(rating,
+        src.name)
+    
+    return render(request, 'charts/chart.html',
+        {'script':script, 'div': div, 'title':title})        
 

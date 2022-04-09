@@ -1,117 +1,127 @@
+
 # TransMediaLint
 
-In 2015 I found myself at the [TransCode](http://trans-code.org/) [event](http://2015.pyconuk.org/transcode/) at
-[PyCon UK](http://pyconuk.org). I was aware of [JobLint](http://joblint.org/), a tool for checking tech job
-adverts for the worst excesses of [recruiters](https://i.pinimg.com/originals/8c/58/4c/8c584c601031ce0f863cb0f8b8e71887.jpg)
-and [start-up culture](https://pbs.twimg.com/media/CfNJTAHWAAAik5I.png). I wondered if the
-[Trans Media Watch](http://www.transmediawatch.org/)
-[style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf) could be automated.
-In the end, most of it could be applied with simple
-[regular expressions](https://pbs.twimg.com/media/Cr7mS_OWcAA7Hzt.jpg), and I thought little of the project for a
-couple of years.
+This software will *probably* not tell you anything you don't already know.
 
-Given the state of the world, I've decided to revive it, this time as a web-app based on the
-Django Rest Framework, Postgres, Solr and Pandas/Bokeh. So far, it seems work on PyPy reasonably well.
-The idea is that it crawls and annotates media websites automatically, and the user can explore and
-search the results. Let us consider The Sun newspaper's website: 
+It *might* help quantify things you already knew.
 
-```http://localhost:8000/charts/rated_articles?source=the-sun```
+The [style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf)
+produced by [Trans Media Watch](http://www.transmediawatch.org/), like the
+[Media Reference Guide](https://www.glaad.org/reference/transgender) released
+by [GLAAD](https://www.glaad.org/) and the
+[Guide For Journalists](https://tgeu.org/wp-content/uploads/2016/07/TGEU_journalistGuide16LR_singlepages.pdf)
+released by the [TGEU](https://tgeu.org/) are designed to help Journalists
+avoid transphobic language, rather than measure it. However, most of the rules
+from these guides can be implemented with simple regular expressions. This
+software crawls (UK) media sites, applies the rules to articles, and examines
+how the usage of transphobic terms and who and what they are applied to has
+changed. It was first thought of at the 2015 [TransCode](http://trans-code.org/)
+[event](http://2015.pyconuk.org/transcode/) held at [PyCon UK](http://pyconuk.org).
 
-The web-crawler searches the Sun's website for articles containing the terms "transgender" or "transsexual",
-which are then annotated by a set of
-[regexes](https://github.com/augeas/TransMediaLint/blob/master/transmedialint/tmw_style_guide/rules.py).
-They are aggregated by month of publication, their frequencies are plotted using Bokeh:
+* There is a *noticable variation* in the *frequency* of transphobic terms across UK
+media websites.
+* There is a *noticable variation* in the *kinds* of transphobic terms across media
+websites.
+* There is a *noticable variation* in the people and organisations mentioned in
+articles, depending on whether potentially transphobic terms are used.
 
-![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles.png)
+### Some Caveats
 
-It seems to be getting busier.
-Articles with no annotations are plotted in green, but of course this doesn't mean that none of them are
-problematic. Those with potentially inappropriate commonly used medical or legal terms are plotted in
-yellow, inaccurate, inappropriate or downright offensive terms are plotted in red. Hopefully, this is a
-fair representation of the
-[style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf), that amplifies it rather
-than speaking for it. One of the things to do reasonably shortly would be to try
-[topic-modelling](https://radimrehurek.com/gensim/). Will the topics of poorly-rated
-articles be more puerile and tawdry? How will topics differ between sources?
+* This software was not solicited by the three organizations mentioned.
+* The style-guides take pains to mention that some terms sometimes considered
+transphobic may be used by trans people about themselves.
+* Some terms may be used in direct quotations, or to discuss transphobia rather
+than engage in it.
+* The presence or absence of a term is not an absolute indication of transphobia
+or otherwise.
+* Website search features are not exaustive, so the frequency of articles may be
+less reliale further back into the past.
+* You are *STRONGLY DISCOURAGED* from deploying this software in its current
+state on a public-facing webserver.
+* The warranty of this software according to its License is
+[NONE AT ALL](http://www.apache.org/licenses/LICENSE-2.0.txt).
 
-**5/10/2018: The scraper for the Sun is broken at the moment, which is an occupational hazard of scraping. The Daily Mail
-and Guardian still work, This should be fixed shortly, and more scrapers are planned.**
+All this software does is to *Count Things*. Interpretation should be left to
+the reader.
 
-What about the Daily Mail?
+## Article Frequency
 
-```http://localhost:8000/charts/rated_articles?source=the-daily-mail```
+By default, articles containing the terms `transgender`, `transexual` and
+`intersex` are searched for. Articles are not counted if they do not contain
+one of the terms, regardless of their appearance in search results. They are
+rated `red` if potentially offsensive, inaccurate or inappropriate terms are
+used, `yellow` if outdated or inappropriate medical terms are used, or `green`
+if no annotations are found.
 
-![rated articles from The Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_mail_articles.png)
+![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles_3_22.png)
+![rated articles from The Daily Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_daily_mail_articles_3_22.png)
 
-It's *obsessed*, and getting more so. The absolute numbers of bad articles remain
-roughly constant, even though they're getting proportionally fewer. We can use the
-REST API to discover that one of the
-[very worst article](http://www.dailymail.co.uk/news/article-2921528/The-man-s-TWO-sex-changes-Incredible-story-Walt-Laura-REVERSED-operation-believes-surgeons-quick-operate.html)
-in terms of the number of annotations is from the Mail:
+Articles from magazines like "The Spectator", and online analogues such as
+"Spiked" or "The Critic" exhibit somewhat more frequent annotations from the
+style-guides:
 
-```http://localhost:8000/worstlintedarticles/```
+![rated articles from The Spectator](https://github.com/augeas/TransMediaLint/raw/master/img/rated_spectator_articles.png)
+![rated articles from Spiked](https://github.com/augeas/TransMediaLint/raw/master/img/rated_spiked_articles.png)
+![rated articles from The Critic](https://github.com/augeas/TransMediaLint/raw/master/img/rated_critic_articles_3_22.png)
 
-![worst article so far](https://github.com/augeas/TransMediaLint/raw/master/img/worst_mail.png)
+Although The Guardian receives fewer annotations, it should be noted that this approach
+will not detect incidents such as its
+[selective editing](https://www.pinknews.co.uk/2021/09/08/judith-butler-guardian-interview-terf-trans/)
+of an interview with [Judith Butler](https://en.wikipedia.org/wiki/Judith_Butler), or its
+[focus during its interview](https://www.pinknews.co.uk/2022/02/19/margaret-atwood-hadley-freeman-trans-gender-critical/) with "Handmaid's Tale" author [Margaret Atwood](http://margaretatwood.ca/).
 
-We can also find its annotations:
+![rated articles from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/rated_guardian_articles_3_22.png)
 
-```http://localhost:8000/annotations/?article__id=717```
+It is not the intention of this software to circumvent pay-walls. Analysis of
+"The Times" and "Telegraph" is being explored through the use of
+[Splash](https://github.com/scrapinghub/splash) to crawl the sites with
+legitimate credentials.
 
-![worst article annotations](https://github.com/augeas/TransMediaLint/blob/master/img/worst_mail_annots.png)
+## Annotation Lable Frequency
 
-(Note that the term "transgenderism" isn't in the original
-[style-guide](http://www.transmediawatch.org/Documents/Media%20Style%20Guide.pdf), but
-I've added it. I'll leave it to others to
-[explain why it shouldn't be used](https://www.quora.com/Is-transgenderism-the-correct-word-to-use-in-regards-to-trans-people).)
+It is a simple matter to plot the monthly count of each type of annotation.
+The keys on the right of the charts list terms in order of decreasing frequency.
+Tabloids like "The Sun" and "The Daily Mail" have broadly similar results.
+The most common annotation "sex-change", is often considered
+[sensationalism](https://www.glaad.org/reference/transgender).
+"The Daily Mail" site features large numbers of syndicated articles from the
+US, which may explain the prominence of the term "bathroom bill".
+The simple approach of counting annotations cannot take into account the
+prominence given to articles, or their appearance on the
+[front-page](https://twitter.com/mimmymum/status/1511998806614851584), however.
 
-Here's The Guardian:
+![annotation labels from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/the_sun_annotation_labels.png)
+![annotation labels from Daily Mail](https://github.com/augeas/TransMediaLint/raw/master/img/the_daily_mail_annotation_labels.png)
 
-![rated articles from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/rated_guardian_articles.png)
+Magazines such as "The Spectator" and online equivalents have a substantially
+different focus. In all cases, the term "transgenderism", widely considered
+[perjorative](https://www.glaad.org/reference/trans-terms), is the most frequent.
 
-The frequency of articles matching the search terms looks horribly similar to that of The Daily Mail, albeit with *somewhat*
-fewer red annotations.
+![annotation labels from The Spectator](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_annotation_labels.png)
+![annotation labels from Spiked](https://github.com/augeas/TransMediaLint/raw/master/img/spiked_annotation_labels.png)
+![annotation labels from The Critic](https://github.com/augeas/TransMediaLint/raw/master/img/the_critic_annotation_labels.png)
 
-## Getting Started
+"Transgenderism" is also more common than "sex-change" in The Guardian, though
+by far the most common term is "passing", which of course has a frequent common
+usage as well as its more controversial one.
 
-If you want to play along with the story so far, first get [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/), and clone the repo.
-You'll need to rename ["eg_settings.py"](https://github.com/augeas/TransMediaLint/blob/master/transmedialint/transmedialint/eg_settings.py)
-to "settings.py" and edit it to add a [Guardian API key](https://open-platform.theguardian.com/access/).
-The containers can be pulled and built with the script the initializes the database. It'll take a while:
+![annotation labels from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/the_guardian_annotation_labels.png)
 
-```
-git clone https://github.com/augeas/TransMediaLint.git
-cd TransMediaLint
-./init_db
-```
+## Named Entity Recognition
 
-Next grab some articles and annotate them in the Django console:
-(The default search terms "transgender" and "transsexual" will be used.)
+The Python NLP library [SpaCy](https://spacy.io/) can perform
+[named entity recognition](https://spacy.io/usage/linguistic-features#named-entities)
+(NER) to extract people, places, organisations, etc... from texts. The most commonly
+occuring entities in articles can be plotted according to the article ratings.
+
+For "The Spectator", in articles rated green, the most common entities are
+political parties, countries,
+[All-Party Parliamentary Groups](https://www.parliament.uk/about/mps-and-lords/members/apg/)
+(APPG) and Jordan Peterson. The red-rated entities start with 
+[the Harry Miller case](https://www.pinknews.co.uk/2021/12/20/harry-miller-court-appeals-gender-critical-hate/).
 
 
-```
-./shell
-from sources.crawlers import TheDailyMail
-TheDailyMail.scrape()
-from tmw_style_guide.annotate import get_annotations
-get_annotations(TheDailyMail)
-```
+![named entities from Spectator articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_green_entities.png)
+![named entities from Spectator articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_red_entities.png)
 
-The Daily Mail will take *ages*. Quit the shell with "Ctrl-D", then start the server with:
 
-```sudo docker-compose up```
-
-## To Do:
-
-Before anyone else moderately technical wastes time on this it needs:
-
-- [X] the Django app to be properly Dockerised
-- [ ] automated scraping and annotating via Celery
-- [ ] cacheing with Redis
-
-Before it's fit for *civilians* it needs:
-
-- [ ] a (probably) AngularJS front-end to consume the API
-- [ ] loads more web-crawlers for more sources
-- [ ] a search API to put Solr to good use
-- [ ] shoving into a VirtualBox appliance for the hard-of-Docker.
-- [ ] .csv downloads
