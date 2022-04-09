@@ -118,7 +118,14 @@ For "The Spectator", in articles rated green, the most common entities are
 political parties, countries,
 [All-Party Parliamentary Groups](https://www.parliament.uk/about/mps-and-lords/members/apg/)
 (APPG) and Jordan Peterson. The red-rated entities start with 
-[the Harry Miller case](https://www.pinknews.co.uk/2021/12/20/harry-miller-court-appeals-gender-critical-hate/).
+[the Harry Miller case](https://www.pinknews.co.uk/2021/12/20/harry-miller-court-appeals-gender-critical-hate/),
+given that this refers to a court case concerning transphobic tweets, it is not
+surprising that it appears in annotated articles, as does the similar
+[Margaret Nelson](https://www.pinknews.co.uk/2021/02/02/innocent-smoothies-twitter-drinks-trans-transgender-rights-twitter-margaret-nelson-pensioner/) case. As for the other entities, "Lucas"
+may refer to [Matt](https://www.pinknews.co.uk/2021/10/01/matt-lucas-lgb-alliance-trans/) or
+[Lucia Lucas](https://www.pinknews.co.uk/2019/10/08/opera-singer-lucia-lucas-makes-history-as-first-trans-star-to-perform-with-english-national-opera/), and former Green Party LGBT spokesperson
+[Aimee Challenor](https://www.pinknews.co.uk/2017/07/07/green-party-lgbtq-spokesperson-i-disagree-with-pride-but-ill-still-be-marching/). 
+
 
 
 ![named entities from Spectator articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/the_spectator_green_entities.png)
