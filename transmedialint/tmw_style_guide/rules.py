@@ -20,7 +20,8 @@ tag_details = {offensive: 'term which many trans people find offensive',
 
 RegRule = namedtuple('RegRule', ['rule', 'tag', 'label'])
 
-regexRules = [(r'post.op', offensive, 'post-op'),
+regexRules = [
+    (r'post.op', offensive, 'post-op'),
     (r'pre.op', offensive, 'pre-op'),
     (r'sex.change', offensive, 'sex-change'),
     (r'sex.swap', offensive, 'sex-swap'),
@@ -32,6 +33,7 @@ regexRules = [(r'post.op', offensive, 'post-op'),
     (r'transsexuality', inaccurate, 'transsexuality'),
     (r'transgendered', inaccurate, 'transgendered'),
     (r'transgenderism', inaccurate, 'transgenderism'),
+    (r'transsexualism', inaccurate, 'transsexualism'),
     (r'gender.identity.confusion', inaccurate,'gender identity confusion'),
     (r'gender.identity.disorder', inappropriate_medical, 'gender identity disorder'),
     (r'disorders?.of.sexual.development', inappropriate_medical,'disorders of sexual development'),
