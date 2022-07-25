@@ -1,81 +1,33 @@
 
 from datetime import datetime
+from itertools import chain
+import json
 import logging
 import os
+import re
 
 from dateutil import parser
 import scrapy
-from scrapy_splash import SplashRequest
+from scrapy_selenium import SeleniumRequest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
-
-__LOGIN_SCRIPT__ = '''
-function form_input(splash, sel, text)
-  el = splash:select(sel)
-  b = el:bounds()
-  splash:mouse_click((b.left+b.right)/2, (b.top+b.bottom)/2)
-  assert(splash:wait(0.5))
-  splash:send_keys(text)
-end
-
-function wait_for_it(splash, sel)
-  while not splash:select(sel)
-  do
-    assert(splash:wait(0.5))
-  end
-end
-
-function main(splash, args)
-  splash:init_cookies(splash.args.cookies)
-  assert(splash:go('https://www.thetimes.co.uk/'))
-  wait_for_it(splash, 'iframe')
-    
-  splash:runjs("document.getElementsByTagName('iframe')[1].contentDocument.getElementsByClassName('message-button')[1].click()")
-  
-  assert(splash:go('https://login.thetimes.co.uk/?gotoUrl=https://www.thetimes.co.uk/'))
- 
-  wait_for_it(splash, 'input[aria-label="Email"]')
-  wait_for_it(splash, 'input[aria-label="Password"]')
- 
-  form_input(splash, 'input[aria-label="Email"]', args.username)
-  assert(splash:wait(0.5))  
-    
-  form_input(splash, 'input[aria-label="Password"]', args.password)
-  assert(splash:wait(0.5))
-
-  form_input(splash, 'input[aria-label="Email"]', args.username)
-  assert(splash:wait(0.5))  
-  
-  wait_for_it(splash, 'button.auth0-lock-submit')
-  
-  splash:select('button.auth0-lock-submit'):mouse_click()
-  
-  wait_for_it(splash, 'a[aria-controls="my-account-menu"]')
-  
-  entries = splash:history()
-  last_response = entries[#entries].response  
-  
-  return {
-    url = splash:url(),
-    html = splash:html(),
-    http_status = last_response.status,
-    headers = last_response.headers,
-    png = splash:png(),
-    har = splash:har(),
-    cookies = splash:get_cookies(),
-  }
-end
-'''
+from scrapers.article_items import ArticleItem
+from transmedialint import settings as tml_settings
 
 
 SEARCH_URL = 'https://www.thetimes.co.uk/search?source=search-page&q={}'
 SEARCH_PAGE_URL = 'https://www.thetimes.co.uk/search?p={}&q={}&source=search-page'
 
+
 class TimesSpider(scrapy.Spider):
     name = 'search'
     start_urls = ['https://www.thetimes.co.uk']
 
-
     def __init__(self, **kwargs):
+        self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/103.0.5060.53 Safari/537.36'
+
         query = kwargs.get('query', None)
         if query:
             self.terms = query.split()
@@ -85,85 +37,193 @@ class TimesSpider(scrapy.Spider):
         logging.info(self.terms)
         
         try:
-            self.last_scraped = parser.parse(kwargs.get('last_scraped', None))
+            self.last_scraped = parser.parse(
+                kwargs.get('last_scraped', None)).isoformat()
         except:
-            self.last_scraped = datetime.fromtimestamp(0)
+            self.last_scraped = datetime.fromtimestamp(0).isoformat()
         
         self.username = kwargs.get('username',
             os.environ.get('TIMES_USERNAME'))
         self.password = kwargs.get('password',
             os.environ.get('TIMES_PASSWORD'))
         
+        self.cookies = {}
+
         super().__init__(**kwargs)
 
 
+
     def start_requests(self):
-        yield SplashRequest(self.start_urls[0], callback=self.after_login,
-            endpoint='/execute', args={
-                'lua_source': __LOGIN_SCRIPT__, 'timeout': 60,
-                'username': self.username, 'password': self.password},
-            meta = {'splash': {'session_id': 1}})
+        yield SeleniumRequest(url=self.start_urls[0], callback=self.login)
 
 
-    def after_login(self, response):
-        #headers = {k.encode('ascii'): v.encode('ascii')
-        #    for k,v in response.headers.items()}
+    def accept_cookies(self, driver):
+        logging.info('The Times: Waiting for cookie button...')
 
-        print(headers)
-        
-        cookies = {c.name: c.value for c in response.cookiejar}
-        for term in self.terms:
-            yield scrapy.Request(url=SEARCH_URL.format(term),
-                callback=self.parse_search,
-                meta={'page': 1, 'term': term, 'splash_cookies': cookies})
-                                 
+        try:
+            button = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR,
+                'button.sp_choice_type_11')))
+        except:
+            return False
+
+        button.click()
+        logging.info('The Times: Approved cookies...')
+        return True
+
+
+    def send_email(self, driver):
+        email = WebDriverWait(driver, 2).until(
+        EC.presence_of_element_located((By.XPATH,
+            '//input[@name="email"]')))
+
+        logging.info('The Times: Found email field.')
+
+        try:
+            email.send_keys(self.username)
+            return True
+        except:
+            return False
+
+
+    def login_script(self, driver):
+        frame = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH,
+            '//iframe[starts-with(@id,"sp_message")]')))
+
+        driver.switch_to.frame(frame)
+
+        self.accept_cookies(driver)
+
+        button = None
+
+        driver.switch_to.default_content()
+
+        anchor = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR,
+            'a.GlobalMenu-conversionLink--logIn')))
+
+        logging.info('The Times: Logging in...')
+
+        anchor.click()
+
+        email_okay = self.send_email(driver)
+        while not email_okay:
+            self.accept_cookies(driver)
+            email_okay = self.send_email(driver)
+
+        pw = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH,
+            '//input[@name="password"]')))
+
+        pw.send_keys(self.password)
+
+        login = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH,
+            '//button[@name="submit"]')))
+
+        login.click()
+
+        logged_in =  WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH,
+            '//a[@aria-controls="my-account-menu"]')))
+
+        logging.info('The Times: Logged in...')
+
+        self.cookies = {c['name']: c['value'] for c in driver.get_cookies()}
+        self.user_agent = driver.execute_script("return navigator.userAgent")
+
+        return True
+
+
+
+    def login(self, response):
+        driver = response.request.meta['driver']
+
+        try:
+            logged_in = self.login_script(driver)
+        except:
+            logged_in = False
+
+        search_url = 'https://www.thetimes.co.uk/search?source=nav-desktop&q={}'
+
+        if logged_in:
+            for term in tml_settings.DEFAULT_TERMS:
+
+                url = search_url.format(term)
+                meta = {'term': term, 'page': 1}
+                yield scrapy.Request(url, meta=meta, cookies=self.cookies,
+                    headers={'User-Agent': self.user_agent}, callback=self.parse_search)
+        else:
+            yield SeleniumRequest(url=self.start_urls[0], callback=self.login)
+
 
     def parse_search(self, response):
-        results = response.css('h2.Item-headline').xpath('a/@href').extract()
-        dates = list(map(parser.parse,
-            response.css('span.Item-dateline').xpath('text()').extract())) 
+        results = response.css('ul.SearchResultList>li')
 
-        new_results = [res for res, dt in zip(results, dates)
-            if dt > self.last_scraped]       
-        
-        for res in new_results:
-            #print('https://www.thetimes.co.uk'+res)
-            yield scrapy.Request(url='https://www.thetimes.co.uk'+res,
-                callback = self.parse_article,
-                cookies=response.meta['splash_cookies'])
+        titles = results.css('h2').xpath('a/text()').extract()
+        bylines = results.css('strong.Byline-name').xpath('text()').extract()
+        dates_published = map(datetime.isoformat,
+            map(parser.parse, results.css('span.Dateline').xpath('text()').extract()))
+        previews = (' '.join(el.xpath('child::text()').extract())
+            for el in results.css('p.Item-dip'))
+        urls = map('https://www.thetimes.co.uk/{}'.format,
+            results.css('h2').xpath('a/@href').extract())
 
-        if len(response.xpath('//a[@aria-label="Next page"]')):
+        items = list(dict(zip(('title', 'url', 'byline', 'preview', 'date_published'), res))
+            for res in zip(titles, urls, bylines, previews, dates_published))
+
+        new_items = list(filter(lambda i: i['date_published'] > self.last_scraped, items))
+
+        for item in new_items:
+            yield scrapy.Request(item['url'], meta=item, cookies=self.cookies,
+                headers={'User-Agent': self.user_agent}, callback=self.parse_article)
+
+        if len(items):
             next_page = response.meta['page'] + 1
+
             term = response.meta['term']
-            yield scrapy.Request(url=SEARCH_PAGE_URL.format(next_page, term),
-                callback=self.parse_search,
-                meta={'page': next_page, 'term': term,
-                    'splash_cookies': response.meta['splash_cookies']})
-        
+            url = 'https://www.thetimes.co.uk/search?p={}&q={}&source=nav-desktop'
+            meta = {'term': term, 'page': next_page}
+
+            yield scrapy.Request(url.format(next_page, term), meta=meta, cookies=self.cookies,
+                headers={'User-Agent': self.user_agent}, callback=self.parse_search)
+
+
+    def extract_text(self, node):
+        if node['name'] == 'text':
+            yield node['attributes']['value']
+
+        yield from chain.from_iterable(map(self.extract_text, node['children']))
+
 
     def parse_article(self, response):
-        #print(response.url)
+
+        item = {k: response.meta.get(k) for k in
+            ('title', 'url', 'byline', 'preview', 'date_published')}
+
+        item['source'] = 'The Times'
+
+        logging.info('The Times: scraped "{}"'.format(item['title']))
+
+        apollo_xp = '//script[starts-with(text(), "window.__APOLLO_STATE__")]/text()'
         try:
-            byline = response.css('meta[name="author"]').xpath(
-                '@content').extract_first().split('by ')[-1]
+            apollo = json.loads(response.xpath(apollo_xp).extract_first().lstrip(
+                '__window.__APOLLO_STATE__ = ')[:-1])
         except:
-            byline = 'The Times'
-        
-        title = response.css('meta[property="og:title"]').xpath(
-            '@content').extract_first()
-        
-        timestamp = parser.parse(response.xpath(
-            '//time/@datetime').extract()[-1]).isoformat()
-        
-        preview = response.xpath('//h2[@role="heading"]/text()').extract_first()    
+            logging.warning('The Times: No valid JSON for {}'.format(item['url']))
+            apollo = None
 
-        print('ARTICLE: {}'.format(title))
-        if response.xpath('//a[aria-controls="my-account-menu"]').extract():
-            print('LOGGED IN...')
-        
-        if response.xpath('//div[@id="paywall-portal-page-footer"]').extract():
-            print('PAYWALL...')
+        if not apollo is None:
+            article = chain.from_iterable(re.findall('Article:[a-z0-9\-]+$', k)
+                for k in apollo.keys()).__next__()
 
-        yield {'title': title, 'url': response.url, 'preview': preview,
-            'byline': byline, 'date_published': timestamp,
-            'content': response.text, 'source': 'The Times'}
+            item['content'] = '\n'.join(chain.from_iterable(
+                map(self.extract_text, apollo[article]['paywalledContent']['json'])))
+
+            item['raw'] = response.text
+
+            yield ArticleItem(**item)
+
+
+

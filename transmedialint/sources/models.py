@@ -27,12 +27,19 @@ class Author(models.Model):
     slug = models.SlugField(max_length=128, unique=True)
     
 
-def article_directory_path(instance, filename):
-    return '/'.join(['article_dump', instance.source.name, str(instance.date_published.year), str(instance.date_published.month), filename])
+def content_directory_path(instance, filename):
+    return '/'.join(['article_dump', instance.source.name, 'content',
+        str(instance.date_published.year), str(instance.date_published.month), filename])
 
 
 def preview_directory_path(instance, filename):
-    return '/'.join(['article_dump', instance.source.name, 'previews', str(instance.date_published.year), str(instance.date_published.month), filename])
+    return '/'.join(['article_dump', instance.source.name, 'previews',
+        str(instance.date_published.year), str(instance.date_published.month), filename])
+
+
+def raw_directory_path(instance, filename):
+    return '/'.join(['article_dump', instance.source.name, 'raw',
+        str(instance.date_published.year), str(instance.date_published.month), filename])
 
 
 class Article(models.Model):
@@ -43,8 +50,9 @@ class Article(models.Model):
     slug = models.SlugField(max_length=256)
     date_published = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))
     date_retrieved = models.DateTimeField(default=localtimezone.datetime.fromtimestamp(0.0))    
-    page = models.FileField(upload_to=article_directory_path)
+    content = models.FileField(upload_to=content_directory_path)
     preview = models.FileField(upload_to=preview_directory_path, null=True)
+    raw = models.FileField(upload_to=raw_directory_path)
     broken = models.BooleanField(default=False)
 
 

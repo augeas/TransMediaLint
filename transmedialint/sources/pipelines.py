@@ -106,16 +106,19 @@ class ArticlePipeline(object):
         
         art.author.add(*art_authors)
 
+        art.content.save(slug + '_content', ContentFile(item['content']))
+
+        if item.get('preview'):
+            art.preview.save(slug + '_preview', ContentFile(item['preview']))
+
         zip_bytes = BytesIO()
         fname = '.'.join((slug, 'html'))
         
         with ZipFile(zip_bytes, 'w') as zipfile:
             zipfile.writestr(fname, item['content'], ZIP_DEFLATED)
 
-        art.page.save(slug + '.zip', ContentFile(zip_bytes.getbuffer()),
+        art.raw.save(slug + '.zip', ContentFile(zip_bytes.getbuffer()),
             save=True)
-        if item.get('preview'):
-            art.preview.save(slug + '_preview', ContentFile(item['preview']))
 
         art.save()
 
@@ -127,7 +130,7 @@ class ArticlePipeline(object):
         solr_fields['literal.url'] = art.url
         solr_fields['literal.timestamp'] = item['date_published']
         solr_fields['commitWithin'] = '2000'        
-        solr_files = {'file': ('article.html', item['content'])}
+        solr_files = {'file': ('article.text', item['content'])}
         requests.post(SOLR_URL, data=solr_fields, files=solr_files)
         
         item['article_id'] = art.id

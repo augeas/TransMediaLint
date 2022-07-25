@@ -16,5 +16,5 @@ spacy
 python-scrapyd-api
 scrapyd-client
 scrapyd
-scrapy-splash
-html2text
+scrapy-selenium
+

@@ -1,5 +1,6 @@
 FROM python:3.9-slim
 
+RUN apt-get update && apt-get install -y chromium chromium-driver
 
 COPY transmedialint/requirements.txt transmedialint/requirements.txt
 

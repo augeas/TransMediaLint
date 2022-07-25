@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.3'
 
 services:
 
@@ -23,14 +23,6 @@ services:
     volumes:
      - pg_data:/var/lib/postgresql/data
 
-  splash:     
-     container_name: tml_splash
-     image: scrapinghub/splash
-     ports:
-      - 5023:5023
-      - 8050:8050
-      - 8051:8051
-
   transmedialint:
     build: .
     restart: always
@@ -50,7 +42,6 @@ services:
     depends_on:
       - solr
       - db
-      - splash
 
 volumes:
   solr_data:

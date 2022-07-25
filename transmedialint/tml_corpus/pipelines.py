@@ -1,5 +1,4 @@
 
-import html2text
 from scrapy.exceptions import DropItem
 import spacy
 
@@ -26,14 +25,7 @@ class NERPipeline(object):
         doc = item.get('doc')
         
         if doc is None:
-            handler = html2text.HTML2Text()
-            handler.ignore_links = True
-            handler.ignore_emphasis = True
-            handler.ignore_images = True
-            
-            raw_text = handler.handle(item['content'])
-            
-            doc = __nlp__(raw_text)
+            doc = __nlp__(item['content'])
             item['doc'] = doc
             
 

@@ -8,7 +8,6 @@ from dateutil import parser as dateparser
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
 from django.utils.text import slugify
-import html2text
 from scrapy.exceptions import DropItem
 import spacy
 
@@ -53,17 +52,10 @@ class TMLintPipeline(object):
     def process_item(self, item, spider):
         
         art_id = item.get('article_id', False)
-        
-        handler = html2text.HTML2Text()
-        handler.ignore_links = True
-        handler.ignore_emphasis = True
-        handler.ignore_images = True
-        
-        raw_text = handler.handle(item['content'])
-        
-        annotations = list(self.annotate(raw_text))
 
-        doc = __nlp__(raw_text)
+        annotations = list(self.annotate(item['content']))
+
+        doc = __nlp__(item['content'])
         
         noun_tokens = filter(self.transgender_noun, doc)
 
