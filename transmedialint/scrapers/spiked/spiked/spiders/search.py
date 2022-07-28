@@ -10,7 +10,7 @@ from transmedialint import settings as tml_settings
 
 
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
-SEARCH_URL = 'https://www.spiked-online.com/wp-admin/admin-post.php'
+SEARCH_URL = 'https://www.spiked-online.com/wp-admin/admin-ajax.php'
 
 
 class SearchSpider(scrapy.Spider):
@@ -37,8 +37,8 @@ class SearchSpider(scrapy.Spider):
         
     def start_requests(self):
         yield from map(self.search_request, self.terms)
-        
-        
+
+
     def parse_results(self, response):
         
         authors = response.css(
@@ -74,8 +74,11 @@ class SearchSpider(scrapy.Spider):
                 
     def parse_article(self, response):
         logging.info('SPIKED: SCRAPED: {} '.format(response.meta['title']))
+
+        content = ''.join(response.css('div.cms').xpath(
+            'descendant::*/text()').extract()))
         
-        yield response_article(self.source, response)
+        yield response_article(self.source, response, content=content)
 
             
             
