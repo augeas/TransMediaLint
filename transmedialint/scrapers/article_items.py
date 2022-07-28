@@ -27,13 +27,18 @@ class ArticleItem(Item):
         return json.dumps(r, sort_keys=True, indent=4, separators=(',', ': '))
     
     
-def response_article(source, response):
+def response_article(source, response, content=None, content_css=None):
     logging.info('{}: SCRAPED: {} '.format(source.upper(),
         response.meta['title']))
     
     item = {'source': source, 'raw': response.text}
     
-    for attr in ('title', 'byline', 'url', 'date_published', 'content'):
+    if content_css:
+        item['content'] = '\n'.join(response.css(content_css).xpath('text()').extract())
+    else:
+        item['content'] = content
+
+    for attr in ('title', 'byline', 'url', 'date_published', 'preview'):
         item[attr] = response.meta.get(attr)
         
     return ArticleItem(**item)

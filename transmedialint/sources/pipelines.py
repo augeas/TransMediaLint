@@ -87,7 +87,8 @@ class ArticlePipeline(object):
 
         try:
             first_match = itertools.chain.from_iterable(
-                p.finditer(item['content'].lower()) for p in PATTERNS).__next__()
+                p.finditer('\n'.join((item['content'].lower(), item['title'].lower())))
+                for p in PATTERNS).__next__()
         except:
             raise DropItem('NO MATCHES: '+slug)
 

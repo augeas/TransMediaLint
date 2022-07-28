@@ -1,8 +1,10 @@
 
 from datetime import datetime
+from itertools import chain
 import logging
 
 import scrapy
+from scrapy_selenium import SeleniumRequest
 
 from scrapers.article_items import response_article
 from transmedialint import settings as tml_settings
@@ -12,6 +14,8 @@ search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=artic
 
 
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
+
+UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36'
 
 
 def search_item_date(ts):
@@ -35,6 +39,13 @@ class SearchSpider(scrapy.Spider):
             self.last_scraped = datetime.fromtimestamp(0).isoformat()
         super().__init__(**kwargs)    
 
+        self.user_agent = UA
+        self.cookies = {}
+
+
+    def start_requests(self):
+        yield SeleniumRequest(url='https://www.dailymail.co.uk', callback=self.cookie_grab)
+
 
     def search_pages(self, offset, terms=None):
         if not terms:
@@ -42,14 +53,26 @@ class SearchSpider(scrapy.Spider):
         urls = ('?'.join([base_url, search_args.format(offset, 50, term)]) for term
             in terms)
         return (scrapy.Request(url=url, callback=self.parse,
+            headers = {'User-Agent': self.user_agent}, cookies=self.cookies,
             meta={'offset': offset, 'term': term}, dont_filter=True)
-            for url, terms in zip(urls, terms))
-        
-    
-    def start_requests(self):
+            for url, term in zip(urls, terms))
+
+
+    def cookie_grab(self, response):
+        driver = response.request.meta['driver']
+
+        self.user_agent = driver.execute_script("return navigator.userAgent")
+
+        driver_cookies = {}
+
+        while len(driver_cookies) < 5:
+            driver_cookies = {c['name']: c['value'] for c in driver.get_cookies()}
+
+        self.cookies = driver_cookies
+
         yield from self.search_pages(0)
-        
-        
+
+
     def parse(self, response):
         offset = response.meta.get('offset', 0)
         next_offset = 50 + offset
@@ -87,11 +110,12 @@ class SearchSpider(scrapy.Spider):
         new = filter(lambda m: m['date_published'] > self.last_scraped, valid_meta)
         
         requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
+            headers = {'User-Agent': self.user_agent}, cookies=self.cookies,
             meta=m) for m in new]
 
         if len(requests):
             logging.info('DAILY MAIL: {} FOUND {} ARTICLES AT OFFSET {}'.format(
-                search_term, len(requests). offset))
+                search_term, len(requests), offset))
             yield from requests
             yield from self.search_pages(next_offset, terms=(search_term,))
         else:
@@ -99,7 +123,13 @@ class SearchSpider(scrapy.Spider):
                 search_term, response.url))
       
       
-    def parse_article(self, response):        
-        yield response_article(self.source, response)
+    def parse_article(self, response):
+        content = '\n'.join(response.css('p.mol-para-with-font').xpath('text()').extract())
+        if not content:
+            content = ' '.join(filter(None, chain.from_iterable(map(str.split, response.xpath(
+                '//div[@itemprop="articleBody"]/descendant::text()').extract()))))
+
+        yield response_article(self.source, response,
+            content=content)
 
         
