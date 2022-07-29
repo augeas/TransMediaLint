@@ -47,7 +47,7 @@ the reader.
 For more thorough research from the trans community itself, beyond this
 automated approach you are strongly
 recommended [The Trans Safety Network](https://transsafety.network/). Feature,
-and pull request, or better still, forks from the LGBT community are welcome.
+and pull requests, or better still, forks from the LGBT community are welcome.
 
 ## Article Frequency
 
@@ -77,10 +77,8 @@ of an interview with [Judith Butler](https://en.wikipedia.org/wiki/Judith_Butler
 
 ![rated articles from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/rated_guardian_articles_3_22.png)
 
-It is not the intention of this software to circumvent pay-walls. Analysis of
-"The Times" and "Telegraph" is being explored through the use of
-[Splash](https://github.com/scrapinghub/splash) to crawl the sites with
-legitimate credentials.
+It is not the intention of this software to circumvent pay-walls. Analysis of "The Times" is performed via legitimate credentials,
+crawling "The Telegraph" is being explored.
 
 ## Annotation Lable Frequency
 
@@ -187,6 +185,7 @@ include:
 * `the_guardian`
 * `the_spectator`
 * `the_sun`
+* `the_times`
 
 It will take *a long time* to crawl and annotate "The Daily Mail". Crawling
 "The Guardian" will require obtaining an
@@ -195,7 +194,10 @@ It will take *a long time* to crawl and annotate "The Daily Mail". Crawling
 Start the servers with:
 
 ```bash
-GUARDIAN_KEY=YOUR_API_KEY docker-compose up
+GUARDIAN_KEY=YOUR_API_KEY \
+TIMES_USERNAME=YOUR_EMAIL \
+TIMES_PASSWORD=YOUR_PASSWORD \
+docker-compose up
 ```
 
 The current state of the API created with the
@@ -217,14 +219,14 @@ where `SLUG` is one of:
 * `the-guardian`
 * `the-spectator`
 * `the-sun`
+* `the-times`
 
 ### TO DO
 
-- [ ] a (probably) AngularJS front-end to consume the API
+- [ ] a (probably) Angular/React JS front-end to consume the API
 - [ ] more web-crawlers for more sources
 - [ ] more charts
 - [ ] a search API to put [Solr](https://solr.apache.org/) to good use
 - [ ] preparing a VirtualBox appliance for non-techical users.
 - [ ] .csv downloads
-
 
