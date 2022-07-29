@@ -59,7 +59,8 @@ class SearchSpider(scrapy.Spider):
                 'byline': res['fields'].get('byline', 'The Guardian'),
                 'date_published': res['timestamp'],
                 'url': res['webUrl'],
-                'content': res['fields']['body']}
+                'content': res['fields']['body'],
+                'raw': response.text}
                 for res in new_results)
         
             yield from (ArticeItem(**item) for item in items)
