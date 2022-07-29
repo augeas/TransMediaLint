@@ -1,10 +1,10 @@
 
-
 import logging
 import re
 
 from dateutil import parser
 import scrapy
+from scrapy_selenium import SeleniumRequest
 
 from scrapers.article_items import ArticleItem
 from transmedialint import settings as tml_settings
@@ -48,13 +48,24 @@ class SearchSpider(scrapy.Spider):
         
         
     def start_requests(self):
-        yield scrapy.Request(url=SCRIPT_URL, callback=self.parse_script)
+        yield SeleniumRequest(url='https://www.spectator.co.uk', callback=self.parse_script)
         
         
     def parse_script(self, response):
-        search_key, = re.findall('(?<=this.searchKey="search-)[^"]+',
-            response.text)
-        
+        driver = response.request.meta['driver']
+
+        retries = 0
+        search_key = ''
+
+        while retries < 5 and not search_key:
+            driver.get(SCRIPT_URL)
+            try:
+                logging.info('THE SPECTATOR: WAITING FOR SEARCH-KEY...')
+                search_key, = re.findall('(?<=this.searchKey="search-)[^"]+',
+                    driver.page_source)
+            except:
+                retries += 1
+
         self.headers = {'authorization': 'Bearer search-{}'.format(search_key)}
         
         for term in self.terms:
@@ -68,16 +79,17 @@ class SearchSpider(scrapy.Spider):
         resp = response.json()
         
         items = resp.get('results', [])
-        fields = {'title': 'title', 'byline': 'author', 'content': 'text_body',
-            'date_published': 'date', 'url': 'url'}
+        fields = {'title': 'title', 'byline': 'author', 'date_published': 'date', 'url': 'url'}
         for item in items:
-            article = dict(map(lambda f: (f[0], item.get(f[1])['raw']),
-                fields.items()))
+            article = {k: item.get(v).get('raw') for k, v in fields.items()}
+            article['content'] = item['text_body']['raw']
             article['date_published'] = parser.parse(article['date_published']).isoformat()
             article['preview'] = item['text_body'].get('snippet')
             article['url'] = 'https://www.spectator.co.uk' + article['url']
             article['source'] = 'The Spectator'
-            
+
+            article['raw'] = response.text
+
             yield ArticleItem(**article)
 
         term = response.meta['term']

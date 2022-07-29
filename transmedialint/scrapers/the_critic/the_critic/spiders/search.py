@@ -63,13 +63,15 @@ class SearchSpider(scrapy.Spider):
         except:
             date_published = None
 
-        content = response.text
+        content = ''.join(filter(None, response.css('div.sf-article-content__text').xpath(
+            'descendant::*/text()').extract())).strip()
         
         item = {k: response.meta.get(k) for k in
             ('title', 'url', 'byline', 'preview')}
         
         item['date_published'] = date_published
         item['content'] = content
+        item['raw'] = response.text
         item['source'] = 'The Critic'
         
         if date_published:

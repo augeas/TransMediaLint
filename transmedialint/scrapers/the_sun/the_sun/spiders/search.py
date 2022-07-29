@@ -61,27 +61,22 @@ class SearchSpider(scrapy.Spider):
         
         
     def parse_article(self, response):
-        timespan, datespan = response.css('.article__published')[0].xpath(
-            './span/text()').extract()
-        
-        day, month, year = datespan.split()
-        
-        day_str = ''.join((['0'] + list(filter(str.isdigit,day)))[-2:])
+        timestamp = parser.parse(response.xpath('//time/@datetime').extract_first()).isoformat()
 
-        time_str = ' '.join([day_str,month,year,timespan.strip()])
-        timestamp = parser.parse(time_str).isoformat()
-        
         try:
             author = response.css('.author')[0].xpath('@data-author').extract_first()
         except:
             author = response.css('.article__author-name').xpath('text()').extract_first()
         
         title = response.css('.article__headline')[0].xpath(
-            './text()').extract()[0]
+            './text()').extract_first()
 
-        preview = response.css('.article__kicker').xpath('./text()').extract()[0]
+        preview = response.xpath('//meta[@name="description"]/@content').extract_first()
+
+        content = '\n'.join(response.css('div.article__content')[0].xpath(
+            'descendant::p|span|h2|a').xpath('text()').extract())
 
         yield ArticleItem(**{'title': title, 'byline': author,
             'preview': preview, 'url': response.url,'date_published': timestamp,
-            'content': response.text, 'source': 'The Sun'})
+            'content': content, 'raw': response.text, 'source': 'The Sun'})
 

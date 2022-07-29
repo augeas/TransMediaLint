@@ -76,7 +76,7 @@ class SearchSpider(scrapy.Spider):
         logging.info('SPIKED: SCRAPED: {} '.format(response.meta['title']))
 
         content = ''.join(response.css('div.cms').xpath(
-            'descendant::*/text()').extract()))
+            'descendant::*/text()').extract())
         
         yield response_article(self.source, response, content=content)
 
