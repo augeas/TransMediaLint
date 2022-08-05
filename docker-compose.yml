@@ -36,6 +36,8 @@ services:
       - GUARDIAN_KEY=$GUARDIAN_KEY
       - TIMES_USERNAME=$TIMES_USERNAME
       - TIMES_PASSWORD=$TIMES_PASSWORD
+      - TELEGRAPH_USERNAME=$TELEGRAPH_USERNAME
+      - TELEGRAPH_PASSWORD=$TELEGRAPH_PASSWORD
     volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump
