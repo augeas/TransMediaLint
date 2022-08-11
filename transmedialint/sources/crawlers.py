@@ -94,6 +94,14 @@ class TheTimes(Crawler):
     timezone = pytz.timezone('Europe/London')
     title = 'The Times'
     crawler = 'the_times'
+
+
+class TheTelegraph(Crawler):
+
+    timezone = pytz.timezone('Europe/London')
+    title = 'The Telegraph'
+    crawler = 'gelegraph'
         
 
-all_the_crawlers = [TheSun, TheDailyMail, TheGuardian, TheTimes]
+all_the_crawlers = [TheSun, TheDailyMail, TheGuardian, TheTimes, TheTelegraph]
+

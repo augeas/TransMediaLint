@@ -77,8 +77,7 @@ of an interview with [Judith Butler](https://en.wikipedia.org/wiki/Judith_Butler
 
 ![rated articles from The Guardian](https://github.com/augeas/TransMediaLint/raw/master/img/rated_guardian_articles_3_22.png)
 
-It is not the intention of this software to circumvent pay-walls. Analysis of "The Times" is performed via legitimate credentials,
-crawling "The Telegraph" is being explored.
+It is not the intention of this software to circumvent pay-walls. Analysis of "The Times" and "The Telegraph" is performed via legitimate credentials.
 
 ## Annotation Lable Frequency
 
@@ -197,6 +196,8 @@ Start the servers with:
 GUARDIAN_KEY=YOUR_API_KEY \
 TIMES_USERNAME=YOUR_EMAIL \
 TIMES_PASSWORD=YOUR_PASSWORD \
+TELEGRAPH_USERNAME=YOUR_EMAIL \
+TELEGRAPH_PASSWORD=YOUR_PASSWORD \
 docker-compose up
 ```
 
@@ -220,6 +221,7 @@ where `SLUG` is one of:
 * `the-spectator`
 * `the-sun`
 * `the-times`
+* `the-telegraph`
 
 ### TO DO
 

@@ -41,6 +41,7 @@ services:
     volumes:
       - tml_articles:/transmedialint/article_dump
       - tml_models:/transmedialint/model_dump
+      - /dev/shm:/dev/shm
     depends_on:
       - solr
       - db
