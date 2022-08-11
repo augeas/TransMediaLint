@@ -58,6 +58,14 @@ rated `red` if potentially offsensive, inaccurate or inappropriate terms are
 used, `yellow` if outdated or inappropriate medical terms are used, or `green`
 if no annotations are found.
 
+While website search functions might be biased to more recent articles, both "The Times" and "The Telegraph" exhibit
+a large increase in article frequency:
+
+![rated articles from The Times](https://github.com/augeas/TransMediaLint/raw/master/img/rated_times_articles_7_22.png)
+![rated articles from The Telegraph](https://github.com/augeas/TransMediaLint/raw/master/img/rated_telegraph_articles.png)
+
+The number of articles that match the search criteria from "The Daily Mail" are consistently high.
+
 ![rated articles from The Sun](https://github.com/augeas/TransMediaLint/raw/master/img/rated_sun_articles_3_22.png)
 ![rated articles from The Daily Mail](https://github.com/augeas/TransMediaLint/raw/master/img/rated_daily_mail_articles_3_22.png)
 
@@ -83,6 +91,13 @@ It is not the intention of this software to circumvent pay-walls. Analysis of "T
 
 It is a simple matter to plot the monthly count of each type of annotation.
 The keys on the right of the charts list terms in order of decreasing frequency.
+
+"The Times" and "Telegraph" both show a recent fondness for the [loaded](https://blogs.scientificamerican.com/voices/stop-using-phony-science-to-justify-transphobia/)
+but [meaningless](https://www.scientificamerican.com/article/sex-redefined-the-idea-of-2-sexes-is-overly-simplistic1/) terms "biologically male or female".
+
+![annotation labels from The Times](https://github.com/augeas/TransMediaLint/raw/master/img/times_annotation_labels.png)
+![annotation labels from The Telegraph](https://github.com/augeas/TransMediaLint/raw/master/img/the_telegraph_annotation_labels.png)
+
 Tabloids like "The Sun" and "The Daily Mail" have broadly similar results.
 The most common annotation "sex-change", is often considered
 [sensationalism](https://www.glaad.org/reference/transgender).
@@ -115,6 +130,20 @@ The Python NLP library [SpaCy](https://spacy.io/) can perform
 [named entity recognition](https://spacy.io/usage/linguistic-features#named-entities)
 (NER) to extract people, places, organisations, etc... from texts. The most commonly
 occuring entities in articles can be plotted according to the article ratings.
+
+For "The Times", athlete [Caster Semenya](https://www.pinknews.co.uk/2020/11/19/caster-semenya-olympics-european-court-human-rights-intersex-hormones-testosterone/)
+has higher prominence in annotated articles compared to un-annotated ones. Penny Mordaunt's fleeting support of [self-id](https://www.pinknews.co.uk/2022/07/12/penny-mordaunt-tory-leadership-lbc-trans/)
+during the 2022 Conservative Party leadership election also makes more frequent appearances in annotated articles.
+
+![named entities from Times articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/times_green_entities.png)
+![named entities from Times articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/times_red_entities.png)
+![named entities from Times articles rated red (detail)](https://github.com/augeas/TransMediaLint/raw/master/img/more_times_red_entities.png)
+
+The pattern is repeated in "The Telegraph". Named transgender individuals like [Emily Bridges](https://www.pinknews.co.uk/2022/03/31/emily-bridges-uk-cycling-trans-ban/)
+feature more heavily in annotated articles.
+
+![named entities from Telegraph articles rated green](https://github.com/augeas/TransMediaLint/raw/master/img/telegraph_green_entities.png)
+![named entities from Telegraph articles rated red](https://github.com/augeas/TransMediaLint/raw/master/img/telegraph_red_entities.png)
 
 For "The Spectator", in articles rated green, the most common entities are
 political parties, countries,
