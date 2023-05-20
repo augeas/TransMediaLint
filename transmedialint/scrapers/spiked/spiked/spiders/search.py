@@ -45,9 +45,10 @@ class SearchSpider(scrapy.Spider):
             'div.compressed-mobile>div.post>h4.title-xxs>a').xpath(
             'text()').extract()
 
-        titles = list(filter(None, map(str.strip, response.css(
-            'div.compressed-mobile>div.post>a.block>h3.title-sm').xpath(
-            'text()').extract())))
+        title_headers = response.css('div.compressed-mobile>div.post>a.block>h3.title-sm')
+
+        titles = [' '.join(t.xpath('descendant-or-self::*/text()').extract()).strip()
+            for t in title_headers]
             
         published_xp = ('div.compressed-mobile>div.post>'
             +'a.block>div.post-meta>div.post-date')

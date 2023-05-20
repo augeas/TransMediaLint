@@ -76,12 +76,12 @@ def rated_article_chart(request):
     
     title = 'Articles from {} rated by the TransMediaWatch style-guide'.format(source.name)
     
-    fig = figure(plot_width=768, plot_height=512, x_axis_type="datetime", title=title,)
+    fig = figure(width=768, height=512, x_axis_type="datetime", title=title,)
     
     fig.vbar_stack(['green','yellow','red'], x='index', width=0.9, 
         color=["#00ff00", "#ffff00", "#ff0000"],
         source=chart_data,
-        legend=['no issues', 'potentially inappropriate medical/legal terms',
+        legend_label=['no issues', 'potentially inappropriate medical/legal terms',
             'offensive, inappropriate or inaccurate terms'])
     
     fig.title.text_font_size = "12pt"
@@ -141,7 +141,7 @@ def annotation_label_chart(request):
     
     chart_data = ColumnDataSource(data=label_counts_by_month.reset_index())
     
-    fig = figure(plot_width=1024, plot_height=512, x_axis_type="datetime",       
+    fig = figure(width=1024, height=512, x_axis_type="datetime",       
         title=title)
     
     fig.varea_stack(stackers=sorted_lables, x='month', legend_label=sorted_lables,

@@ -29,7 +29,7 @@ def entity_stack(source, page, df, ranks, width=1024, height=512,
     if suffix:
         title = ' '.join((title, suffix))
     
-    fig = figure(plot_width=width, plot_height=height, x_axis_type="datetime",       
+    fig = figure(width=width, height=height, x_axis_type="datetime",       
         title=title)
     
     entities = ranks[start:end]
