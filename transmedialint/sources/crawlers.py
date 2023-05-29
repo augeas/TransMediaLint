@@ -100,8 +100,14 @@ class TheTelegraph(Crawler):
 
     timezone = pytz.timezone('Europe/London')
     title = 'The Telegraph'
-    crawler = 'gelegraph'
+    crawler = 'telegraph'
+    
+class Unherd(Crawler):
+
+    timezone = pytz.timezone('Europe/London')
+    title = 'Unherd'
+    crawler = 'unherd'
         
 
-all_the_crawlers = [TheSun, TheDailyMail, TheGuardian, TheTimes, TheTelegraph]
+all_the_crawlers = [TheSun, TheDailyMail, TheGuardian, TheTimes, TheTelegraph, Unherd]
 

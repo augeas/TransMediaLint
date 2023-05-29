@@ -23,6 +23,10 @@ services:
     volumes:
      - pg_data:/var/lib/postgresql/data
 
+#  neo:
+#    container_name: tml_neo
+#    image: neo4j:5.5.0  
+     
   transmedialint:
     build: .
     restart: always
