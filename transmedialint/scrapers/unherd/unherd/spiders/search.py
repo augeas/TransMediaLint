@@ -1,5 +1,8 @@
 
+# Licensed under the Apache License Version 2.0: http://www.apache.org/licenses/LICENSE-2.0.txt
+
 from datetime import datetime
+from itertools import takewhile
 import logging
 
 from dateutil import parser
@@ -12,6 +15,12 @@ from transmedialint import settings as tml_settings
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
 
 SEARCH_URL ='https://unherd.com/?s={}'
+
+not_comment = lambda p: not p.xpath('preceding::div[starts-with(@class, "wpd-comment")]')
+
+def content_p(ptags):
+    return '\n'.join(filter(None, (p.xpath('text()').extract_first()
+        for p in takewhile(not_comment, ptags)))).strip()
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
@@ -56,24 +65,36 @@ class SearchSpider(scrapy.Spider):
         if next_page <= max_page:
             url = 'https://unherd.com/page/{}/?s={}'.format(next_page, term)
             yield scrapy.Request(url=url,
-                meta={'term': term, 'page': page, 'max_page': max_page},
+                meta={'term': term, 'page': next_page, 'max_page': max_page},
                 callback=self.parse_results)
-            
         
     def parse_article(self, response):
         try:
-            date_published = parser.parse(response.css('div.date').xpath(
-                'text()').extract_first()).isoformat()
+            date_published = parser.parse(response.xpath(
+                '//meta[@name="cXenseParse:publishtime"]/@content').extract_first()).isoformat()
         except:
             logging.error('UNHERD: BROKEN DATE FOR: {}'.format(response.url))
             date_published = None
 
         preview = response.css('div.metabox').xpath(
             'h4/text()').extract_first()
+        
+        if not preview:
+            description_xp = '//meta[@property="og:description"]/@content'
+            preview = response.xpath(description_xp).extract_first().split('[')[0]
 
         content = '\n'.join(response.css('div#artbody').xpath(
-            'div/p/text()').extract())
+            '//p/span/text()').extract()).strip()
         
+        if not content:
+            content = content_p(response.css('div#artbody').xpath('//p'))
+        
+        if not content:
+            content = content_p(response.css('div.thepostinner').xpath('//p'))
+
+        if not content:
+            logging.error('UNHERD: MISSING CONTENT FOR: {}'.format(response.url))
+
         item = {k: response.meta.get(k) for k in
             ('title', 'url', 'byline')}
         
@@ -83,5 +104,5 @@ class SearchSpider(scrapy.Spider):
         item['raw'] = response.text
         item['source'] = 'Unherd'
         
-        if date_published:
+        if date_published and content:
             yield ArticleItem(**item)

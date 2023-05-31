@@ -1,4 +1,6 @@
 
+# Licensed under the Apache License Version 2.0: http://www.apache.org/licenses/LICENSE-2.0.txt
+
 from django.http import HttpResponse, Http404
 from django.db.models import Count
 from django.db.models.functions import ExtractMonth, Trunc
@@ -126,11 +128,10 @@ def annotation_label_chart(request):
         'month', 'label').annotate(count=Count('id')).order_by('month')
         
     df = pd.DataFrame(query.iterator())
-    
-    label_counts_by_month = df.pivot(
-        'month', 'label', 'count').reset_index().set_index(
-        'month').asfreq('MS').fillna(0)
-                
+        
+    label_counts_by_month = df.pivot(columns='label', index='month',
+        values='count').fillna(0)
+
     sorted_lables = list(df.groupby('label').agg(
         {'count': 'sum'}).reset_index().sort_values(
         'count', ascending=False).label)[0:20]
@@ -139,7 +140,7 @@ def annotation_label_chart(request):
     
     title = 'Article Annotations from {}'.format(src.name)
     
-    chart_data = ColumnDataSource(data=label_counts_by_month.reset_index())
+    chart_data = ColumnDataSource(data=label_counts_by_month)
     
     fig = figure(width=1024, height=512, x_axis_type="datetime",       
         title=title)
