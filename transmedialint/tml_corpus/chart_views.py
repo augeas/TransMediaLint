@@ -35,11 +35,6 @@ def entity_stack(source, page, df, ranks, width=1024, height=512,
     entities = ranks[start:end]
     colour = palettes.d3[palette][max(len(entities), 20)]
     
-    #entities_by_month = df.merge(entities, on='entity__text')[
-    #    ['entity__text', 'month', 'entity__text__count']].pivot(
-    #    'month', 'entity__text', 'entity__text__count').reset_index().set_index(
-    #    'month').asfreq('MS').fillna(0)
-
     entities_by_month = df.merge(entities, on='entity__text')[
         ['entity__text', 'month', 'entity__text__count']] .pivot(
         columns='entity__text', index='month',
