@@ -214,6 +214,7 @@ include:
 * `the_spectator`
 * `the_sun`
 * `the_times`
+* `unherd`
 
 It will take *a long time* to crawl and annotate "The Daily Mail". Crawling
 "The Guardian" will require obtaining an
