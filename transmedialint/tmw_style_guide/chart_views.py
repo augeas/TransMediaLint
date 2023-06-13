@@ -1,5 +1,6 @@
 
 # Licensed under the Apache License Version 2.0: http://www.apache.org/licenses/LICENSE-2.0.txt
+import json
 
 from django.http import HttpResponse, Http404
 from django.db.models import Count
@@ -123,14 +124,20 @@ def cumulative_angle(df, source, start, end):
     
     
 def cat_palette(size):
+    if size <= 10:
+        return palettes.d3['Category20b'][10][0:size]
     if size <= 20:
         return palettes.d3['Category20b'][size]
-    else:
+    elif size <= 40:
         hsize = size // 2
         return (palettes.d3['Category20b'][hsize]
             + palettes.d3['Category20c'][hsize+1])[0:size]
+    else:
+        return (palettes.d3['Category20b'][20]
+            + palettes.d3['Category20c'][20]
+            + palettes.brewer['BrBG'][11])[0:size]
 
-
+        
 def fill_legend(legend, items, render, offset=0):
     for i, item in enumerate(items):
         legend.items.append(LegendItem(
@@ -148,27 +155,53 @@ def rated_author_chart(request):
         
     author_df = query_df.pivot(
         columns='ratedarticle__rating', index='author__name',
-        values='rating_count').fillna(0).reset_index().sort_values(
-        'red', ascending=False)
+        values='rating_count').fillna(0).reset_index()
+    
+    if 'red' in author_df.columns:
+        author_df.sort_values('red', ascending=False, inplace=True)
+    elif 'yellow' in author_df.columns:
+        author_df.sort_values('yellow', ascending=False, inplace=True)
+    else:
+        author_df.sort_values('green', ascending=False, inplace=True)
 
-    author_df['total'] = author_df[['red', 'yellow', 'green']].sum(axis=1)
+    present_ratings = [rating for rating in ['red', 'yellow', 'green']
+        if rating in author_df.columns]
+    author_df['total'] = author_df[present_ratings].sum(axis=1)
     
     total_articles = author_df.total.sum()
     author_df['article_frac'] = author_df.total / total_articles
 
-    total_red_articles = author_df.red.sum()
+    if 'red' in author_df.columns:
+        total_red_articles = author_df.red.sum()
+        red_col = 'red'
+    elif 'yellow' in author_df.columns:
+         total_red_articles = author_df.yellow.sum()
+         red_col = 'yellow'
+    else:
+        total_red_articles = author_df.green.sum()
+        red_col = 'green'
     
-    author_df['total_red_frac'] = author_df.red / total_red_articles
+    author_df['total_red_frac'] = author_df[red_col] / total_red_articles
     author_df['significant'] = (author_df.total_red_frac.cumsum()
         * 100).diff().fillna(100) >= 1
+    
+    author_df.reset_index(drop=True, inplace=True)
+    
+    if len(author_df[author_df.significant]) > 20:
+        author_df.loc[0:20, 'significant'] = True
+        author_df.loc[20:, 'significant'] = False
 
     the_others = author_df[~author_df.significant].drop(
         ['author__name', 'significant'], axis=1).sum().to_dict()
     the_others['author__name'] = 'Others ({})'.format(
         len(author_df[~author_df.significant]))
     
-    rated_authors_df = pd.concat((author_df[author_df.significant].drop(
-        'significant', axis=1), pd.DataFrame((the_others,))), axis=0)
+    all_author_cols = ('author__name', 'green', 'yellow', 'red',
+        'total', 'article_frac', 'total_red_frac')
+    author_cols = [col for col in all_author_cols if col in author_df]
+    other_cols = [col for col in all_author_cols if col in the_others.keys()]
+    rated_authors_df = pd.concat((author_df[author_df.significant][author_cols],
+        pd.DataFrame((the_others,))[other_cols]), axis=0)
     
     cumulative_angle(rated_authors_df, 'article_frac', 'total_start_angle',
         'total_end_angle')
@@ -260,6 +293,13 @@ def rated_author_chart(request):
     script, div = components(plot)
         
     title = 'Articles from {} rated by author'.format(source.name)
+
+    #return HttpResponse('\n'.join(rated_authors_df.author__name))
+
+    
+    #return HttpResponse(json.dumps(author_fractions_df[
+    #    ['start_angle', 'end_angle', 'colours']].rename(columns={
+    #    'start_angle': 'start', 'end_angle': 'end'}).to_dict('records')))
 
     return render(request, 'charts/chart.html',
         {'script':script, 'div': div, 'title': title})

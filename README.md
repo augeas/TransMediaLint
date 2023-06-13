@@ -34,8 +34,8 @@ transphobic may be used by trans people about themselves.
 than engage in it.
 * The presence or absence of a term is not an absolute indication of transphobia
 or otherwise.
-* Website search features are not exaustive, so the frequency of articles may be
-less reliale further back into the past.
+* Website search features are not exhaustive, so the frequency of articles may be
+less reliable further back into the past.
 * You are *STRONGLY DISCOURAGED* from deploying this software in its current
 state on a public-facing webserver.
 * The warranty of this software according to its License is
