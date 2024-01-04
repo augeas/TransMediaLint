@@ -30,6 +30,9 @@ regexRules = [
     (r'gender.?bender',offensive, 'gender bender'),
     (r'hermaphrodite', offensive, 'hermaphrodite'),
     (r'tranny', offensive, 'tranny'),
+    (r'troon', offensive, 'troon'),
+    (r'trans.identified (?:fe)?male(?:s)', offensive, 'TIM/TIF'),
+    (r'autogynephili[a,c]|AGP', inappropriate_medical, 'AGP'),
     (r'transsexuality', inaccurate, 'transsexuality'),
     (r'transgendered', inaccurate, 'transgendered'),
     (r'transgenderism', inaccurate, 'transgenderism'),
@@ -47,11 +50,11 @@ regexRules = [
     (r'biological(?:ly)? (?:fe)?male', inaccurate, 'biologically male/female'),
     (r'biological (?:wo)?man', inaccurate, 'biological man/woman'),
     (r'genetically (?:fe)?male', inaccurate, 'genetically male/female'),
-    (r'passing', inappropriate, 'passing'),
-    (r'stealth', inappropriate, 'stealth'),
+#    (r'passing', inappropriate, 'passing'),
+#    (r'stealth', inappropriate, 'stealth'),
     (r'shim(?=[^A-Za-z])', offensive, 'shim'),
-    (r'bathroom bill', defamatory, 'bathroom bill')
-    ]
+    (r'bathroom bill', defamatory, 'bathroom bill')   
+]
               
 rules = [RegRule(re.compile(rule, flags=re.IGNORECASE),tag,label) for rule,tag,label in regexRules]
 

@@ -41,7 +41,7 @@ def entity_stack(source, page, df, ranks, width=1024, height=512,
         index='month', columns='entity__text',
         values='entity__text__count').reset_index().set_index(
         'month').asfreq('MS').fillna(0)
-        
+
     chart_data = ColumnDataSource(entities_by_month.reset_index())
     
     entity_labels = list(entities.entity__text)

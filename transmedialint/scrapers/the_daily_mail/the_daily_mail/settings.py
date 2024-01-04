@@ -19,7 +19,7 @@ import django
 SELENIUM_DRIVER_NAME = 'chrome'
 SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
 SELENIUM_DRIVER_ARGUMENTS = ['--disable-extensions', '--disable-gpu',
-    '--no-sandbox', '--headless']
+    '--no-sandbox', '--disable-dev-shm-usage', '--headless']
 
 
 sys.path.append(os.path.abspath('../..'))

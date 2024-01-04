@@ -19,7 +19,7 @@ from transmedialint import settings as tml_settings
 SOLR_URL = 'http://{}:8983/solr/articles/update/extract'.format(
     os.environ.get('SOLR_HOST', 'localhost'))
 
-PATTERNS = list(map(re.compile, tml_settings.DEFAULT_TERMS))
+PATTERNS = list(map(re.compile, tml_settings.DEFAULT_TERMS + ['trans']))
 
 
 class ArticlePipeline(object):
