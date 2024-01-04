@@ -4,13 +4,12 @@ services:
 
   solr:
     container_name: tml_solr
-    image: solr:alpine
+    image: solr
     ports:
      - "8983:8983"
     volumes:
-      - solr_data:/opt/solr/server/solr/mycores
-    entrypoint:
-      - docker-entrypoint.sh
+      - solr_data:/var/solr
+    command:
       - solr-precreate
       - articles
       

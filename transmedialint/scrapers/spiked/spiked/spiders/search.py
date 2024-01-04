@@ -66,10 +66,10 @@ class SearchSpider(scrapy.Spider):
                         'date_published': date_pub, 'preview': None
                     })
                 
-            if len(titles):
-                offset = response.meta.get('offset', 0) + len(titles)
-                logging.info('SPIKED, NEXT OFFSET: {}'.format(offset))
-                yield self.search_request(response.meta['term'], offset)
+        if len(titles):
+            offset = response.meta.get('offset', 0) + len(titles)
+            logging.info('SPIKED, NEXT OFFSET: {}'.format(offset))
+            yield self.search_request(response.meta['term'], offset)
                 
                 
     def parse_article(self, response):

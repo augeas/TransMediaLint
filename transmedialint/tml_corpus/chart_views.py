@@ -1,6 +1,7 @@
 
 from itertools import chain
 
+import bokeh
 from bokeh import palettes
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
@@ -29,7 +30,7 @@ def entity_stack(source, page, df, ranks, width=1024, height=512,
     if suffix:
         title = ' '.join((title, suffix))
     
-    fig = figure(plot_width=width, plot_height=height, x_axis_type="datetime",       
+    fig = figure(width=width, height=height, x_axis_type="datetime",
         title=title)
     
     entities = ranks[start:end]
@@ -37,7 +38,8 @@ def entity_stack(source, page, df, ranks, width=1024, height=512,
     
     entities_by_month = df.merge(entities, on='entity__text')[
         ['entity__text', 'month', 'entity__text__count']].pivot(
-        'month', 'entity__text', 'entity__text__count').reset_index().set_index(
+        index='month', columns='entity__text',
+        values='entity__text__count').reset_index().set_index(
         'month').asfreq('MS').fillna(0)
         
     chart_data = ColumnDataSource(entities_by_month.reset_index())
@@ -101,8 +103,10 @@ def source_entity_chart(request):
     
     title = 'Named Entities from Articles in {}'.format(src.name)
     
-    return render(request, 'charts/chart.html',
-        {'script':script, 'div': div, 'title':title})
+    return render(request, 'charts/chart.html', {
+        'script':script, 'div': div, 'title': title,
+        'version': bokeh.__version__
+    })
 
 
 def entities_by_article(art_ids):
@@ -154,6 +158,8 @@ def annotated_entity_chart(request):
     title = 'Named Entities from Articles rated {} in {}'.format(rating,
         src.name)
     
-    return render(request, 'charts/chart.html',
-        {'script':script, 'div': div, 'title':title})        
+    return render(request, 'charts/chart.html', {
+        'script':script, 'div': div, 'title':title,
+        'version': bokeh.__version__
+    })
 

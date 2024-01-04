@@ -86,8 +86,7 @@ class ArticlePipeline(object):
         slug = slugify(item['title'])
 
         try:
-            first_match = itertools.chain.from_iterable(
-                p.finditer('\n'.join((item['content'].lower(), item['title'].lower())))
+            first_match = itertools.chain.from_iterable(p.finditer(item['raw'].lower())
                 for p in PATTERNS).__next__()
         except:
             raise DropItem('NO MATCHES: '+slug)
