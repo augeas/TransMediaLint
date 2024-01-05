@@ -93,6 +93,9 @@ class SearchSpider(scrapy.Spider):
             content = content_p(response.css('div.thepostinner').xpath('//p'))
 
         if not content:
+            content = '\n'.join(response.xpath('//span[@style="font-weight: 400;"]/text()').extract())
+
+        if not content:
             logging.error('UNHERD: MISSING CONTENT FOR: {}'.format(response.url))
 
         item = {k: response.meta.get(k) for k in
