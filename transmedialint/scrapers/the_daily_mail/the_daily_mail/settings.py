@@ -16,12 +16,6 @@ import sys
 import django
 
 
-SELENIUM_DRIVER_NAME = 'chrome'
-SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
-SELENIUM_DRIVER_ARGUMENTS = ['--disable-extensions', '--disable-gpu',
-    '--no-sandbox', '--disable-dev-shm-usage', '--headless']
-
-
 sys.path.append(os.path.abspath('../..'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'transmedialint.settings')
 django.setup()
@@ -33,11 +27,6 @@ BOT_NAME = 'the_daily_mail'
 
 SPIDER_MODULES = ['the_daily_mail.spiders']
 NEWSPIDER_MODULE = 'the_daily_mail.spiders'
-
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_selenium.SeleniumMiddleware': 800
-}
-
 
 #DUPEFILTER_CLASS = 'scrapy.dupefilter.RFPDupeFilter'
 

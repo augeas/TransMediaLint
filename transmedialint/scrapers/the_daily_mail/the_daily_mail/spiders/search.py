@@ -3,8 +3,8 @@ from datetime import datetime
 from itertools import chain
 import logging
 
+from dateutil import parser
 import scrapy
-from scrapy_selenium import SeleniumRequest
 
 from scrapers.article_items import response_article
 from transmedialint import settings as tml_settings
@@ -12,18 +12,9 @@ from transmedialint import settings as tml_settings
 base_url = 'https://www.dailymail.co.uk/home/search.html'
 search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
 
-
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
 
-UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36'
-
-
-def search_item_date(ts):
-    try:
-        return datetime.strptime(ts, '%B %d %Y, %I:%M:%S %p').isoformat()
-    except:
-        return None
-
+UA ='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.1'
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
@@ -44,8 +35,7 @@ class SearchSpider(scrapy.Spider):
 
 
     def start_requests(self):
-        yield SeleniumRequest(url='https://www.dailymail.co.uk', callback=self.cookie_grab)
-
+        yield from self.search_pages(offset=0, terms=self.terms)
 
     def search_pages(self, offset, terms=None):
         if not terms:
@@ -58,21 +48,6 @@ class SearchSpider(scrapy.Spider):
             for url, term in zip(urls, terms))
 
 
-    def cookie_grab(self, response):
-        driver = response.request.meta['driver']
-
-        self.user_agent = driver.execute_script("return navigator.userAgent")
-
-        driver_cookies = {}
-
-        while len(driver_cookies) < 5:
-            driver_cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-
-        self.cookies = driver_cookies
-
-        yield from self.search_pages(0)
-
-
     def parse(self, response):
         offset = response.meta.get('offset', 0)
         next_offset = 50 + offset
@@ -80,26 +55,23 @@ class SearchSpider(scrapy.Spider):
         logging.info('DAILY MAIL: {} NEXT OFFSET: {}'.format(
             search_term, next_offset))
         
-        articles = response.css('.sch-res-content')
-        anchors = articles.xpath('./h3').css('.sch-res-title').xpath(
-            './a')
-        titles = anchors.xpath('./text()').extract()
-        urls = ('https://www.dailymail.co.uk'+u for u in
-            anchors.xpath('./@href').extract())
-        
-        previews = articles.css('.sch-res-preview').xpath('./text()').extract()
+        titles = response.css('h3.sch-res-title').xpath('a/text()').extract()
 
-        info = articles.xpath('./h4').css('.sch-res-info')        
-        bylines = info.xpath('./a/text()').extract()
+        urls = ['https://www.dailymail.co.uk' + u if not u.startswith('/wires')
+            else None for u in response.css('h3.sch-res-title').xpath(
+            'a/@href').extract()
+        ]
 
-        timechunks = map(str.split,map(str.strip, info.xpath(
-            './text()[last()]').extract()))
-                
-        timestr = (' '.join([t[1]] + [''.join(filter(str.isdigit,t[2]))]
-            + t[3:]) for t in timechunks)
+        previews = response.css('p.sch-res-preview').xpath('text()').extract()
 
-        timestamps = map(search_item_date, timestr)
-        
+        bylines  = [res.xpath('a/text()[1]').extract_first()
+            for res in  response.css('h4.sch-res-info')]
+
+        timestamps = [ts.isoformat() for ts in
+            map(parser.parse, response.css('h4.sch-res-info').xpath(
+            'text()[last()]').extract())
+        ]
+
         meta = ({'title': title, 'url': url, 'preview': preview,
             'byline': byline, 'date_published': timestamp} for
             title, url, preview, byline, timestamp in
@@ -121,7 +93,6 @@ class SearchSpider(scrapy.Spider):
         else:
             logging.info("DAILY MAIL: {}, NO RESULTS FROM: {}".format(
                 search_term, response.url))
-      
       
     def parse_article(self, response):
         content = '\n'.join(response.css('p.mol-para-with-font').xpath('text()').extract())
