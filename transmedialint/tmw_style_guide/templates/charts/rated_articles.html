@@ -12,8 +12,8 @@
  <body>
      {{ div | safe }}
 </body>
-
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-{{ version | safe }}.min.js"></script>
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-{{ version | safe }}.min.js"></script>
+    {% for js in js_files %}
+    <script type="text/javascript" src="{{ js | safe }}"></script>
+    {% endfor %}
     {{ script | safe }}
 </html>

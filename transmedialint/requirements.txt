@@ -1,6 +1,7 @@
 django
 django-filter
 djangorestframework
+djangorestframework-csv
 psycopg2-binary
 urllib3
 requests

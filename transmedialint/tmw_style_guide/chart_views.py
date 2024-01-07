@@ -7,11 +7,11 @@ from django.db.models import Count
 from django.db.models.functions import ExtractMonth, Trunc
 from django.shortcuts import render
 
-import bokeh
 from bokeh.embed import components
 from bokeh.models import AnnularWedge, ColumnDataSource, Legend, LegendItem, Plot, Range1d
 from bokeh import palettes
 from bokeh.plotting import figure
+from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
 
@@ -114,7 +114,7 @@ def rated_article_chart(request):
 
     return render(request, 'charts/chart.html', {
         'script':script, 'div': div, 'title': title,
-        'version': bokeh.__version__
+        'js_files': CDN.js_files
     })
 
 
@@ -297,16 +297,9 @@ def rated_author_chart(request):
         
     title = 'Articles from {} rated by author'.format(source.name)
 
-    #return HttpResponse('\n'.join(rated_authors_df.author__name))
-
-    
-    #return HttpResponse(json.dumps(author_fractions_df[
-    #    ['start_angle', 'end_angle', 'colours']].rename(columns={
-    #    'start_angle': 'start', 'end_angle': 'end'}).to_dict('records')))
-
     return render(request, 'charts/chart.html', {
         'script' :script, 'div': div, 'title': title,
-        'version': bokeh.__version__
+        'js_files': CDN.js_files
     })
 
 
@@ -369,7 +362,7 @@ def annotation_label_chart(request):
     script, div = components(fig)
 
     return render(request, 'charts/chart.html', {
-        'script':script, 'div': div, 'title': title,
-        'version': bokeh.__version__
+        'scripts': script, 'div': div, 'title': title,
+        'js_files': CDN.js_files
     })
 

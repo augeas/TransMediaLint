@@ -2,8 +2,9 @@
 from django.db.models import Count
 from django.shortcuts import render
 from django_filters import FilterSet
-from rest_framework import generics
-from rest_framework import status, viewsets
+from rest_framework.settings import api_settings
+from rest_framework import generics, status, views, viewsets
+from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from sources.models import Article, Author
 from tmw_style_guide.models import Annotation, RatedArticle
@@ -13,7 +14,13 @@ from tmw_style_guide import serializers
 class RatedArticleFilter(FilterSet):
     class Meta:
         model = RatedArticle
-        fields = ('article__slug', 'article__author__slug')
+        fields = ('article__source__slug', 'article__slug', 'article__author__slug')
+
+    def __init__(self, *args, **kwargs):
+        super(RatedArticleFilter, self).__init__(*args, **kwargs)
+        self.filters['article__source__slug'].label = 'source'
+        self.filters['article__author__slug'].label = 'author'
+        self.filters['article__slug'].label = 'slug'
 
 
 class RatedArticleViewSet(viewsets.ReadOnlyModelViewSet):
@@ -21,7 +28,20 @@ class RatedArticleViewSet(viewsets.ReadOnlyModelViewSet):
         '-inaccurate', '-inappropriate')
     serializer_class = serializers.RatedArticleSerializer
     filterset_class = RatedArticleFilter
-    
+
+
+class RatedArticleExportRenderer(PaginatedCSVRenderer):
+    header = ['source', 'slug', 'title', 'author', 'inaccurate', 'inappropriate',
+        'offensive', 'date_published', 'url', 'path']
+
+
+class RatedArticleExportViewSet(viewsets.ReadOnlyModelViewSet):
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (
+        RatedArticleExportRenderer,)
+    queryset = RatedArticle.objects.all().order_by('-article__date_published')
+    serializer_class = serializers.RatedArticleExportSerializer
+    filterset_class = RatedArticleFilter
+
 
 '''
 class LintedArticleList(generics.ListCreateAPIView):

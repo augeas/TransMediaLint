@@ -1,12 +1,12 @@
 
 from itertools import chain
 
-import bokeh
 from bokeh import palettes
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
 from bokeh.layouts import column
 from bokeh.plotting import figure
+from bokeh.resources import CDN
 from django.http import HttpResponse, Http404
 from django.db.models import Count
 from django.db.models.functions import Trunc
@@ -104,8 +104,8 @@ def source_entity_chart(request):
     title = 'Named Entities from Articles in {}'.format(src.name)
     
     return render(request, 'charts/chart.html', {
-        'script':script, 'div': div, 'title': title,
-        'version': bokeh.__version__
+        'script': script, 'div': div, 'title': title,
+        'js_files': CDN.js_files
     })
 
 
@@ -159,7 +159,7 @@ def annotated_entity_chart(request):
         src.name)
     
     return render(request, 'charts/chart.html', {
-        'script':script, 'div': div, 'title':title,
-        'version': bokeh.__version__
+        'script': script, 'div': div, 'title': title,
+        'js_files': CDN.js_files
     })
 

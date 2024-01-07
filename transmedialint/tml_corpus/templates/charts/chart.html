@@ -2,18 +2,12 @@
 <html lang="en">
   <head>
     <title>{{ title | safe }}</title>
-    <link
-        href="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.css"
-        rel="stylesheet" type="text/css">
-    <link
-        href="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.css"
-        rel="stylesheet" type="text/css">
  </head>
  <body>
      {{ div | safe }}
 </body>
-
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js"></script>
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.2.min.js"></script>
+    {% for js in js_files %}
+    <script type="text/javascript" src="{{ js | safe }}"></script>
+    {% endfor %}
     {{ script | safe }}
 </html>

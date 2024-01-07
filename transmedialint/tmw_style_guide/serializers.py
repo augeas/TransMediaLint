@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from dateutil import parser
 from django.db.models import Count
 
 from sources.models import Article, Author, Source
@@ -16,6 +17,33 @@ class RatedArticleSerializer(serializers.ModelSerializer):
         
         depth = 2
 
+
+class RatedArticleExportSerializer(serializers.ModelSerializer):
+    article = ArticleSerializer()
+
+    class Meta:
+        model = RatedArticle
+        fields = ('article', 'offensive', 'inaccurate', 'inappropriate')
+
+        depth = 2
+
+    def to_representation(self, obj):
+        rep = super().to_representation(obj)
+        article_rep = rep.pop('article')
+        for key in ('title', 'slug', 'date_published', 'url'):
+            rep[key] = article_rep[key]
+        rep['author'] = article_rep['author'][0]['name']
+        rep['source'] = article_rep['source']['slug']
+
+        published = parser.parse(article_rep['date_published'])
+
+        rep['path'] = '{}/content/{}/{}/{}_content'.format(
+            article_rep['source']['name'],
+            published.year, published.month,
+            article_rep['slug']
+        )
+
+        return rep
 
 class LintedArticleSerializer(serializers.ModelSerializer):
     annotation_count = serializers.SerializerMethodField()
