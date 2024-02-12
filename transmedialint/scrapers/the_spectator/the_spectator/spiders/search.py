@@ -76,6 +76,19 @@ class SearchSpider(scrapy.Spider):
             
             
     def parse_results(self, response):
+
+        '''
+        anchors = response.xpath('//article').css(
+            'header.article__header>h3>a.article__title-link')
+
+        links = anchors.xpath('@href').extract()
+        titles =  list(map(str.strip, anchors.xpath('text()').extract()))
+        previews = response.css('p.article__excerpt-text').xpath('text()')
+        bylines = list(map(str.strip, response.css('a.article__author').xpath(
+            'text()').extract()))
+        ''''
+
+
         resp = response.json()
         
         items = resp.get('results', [])

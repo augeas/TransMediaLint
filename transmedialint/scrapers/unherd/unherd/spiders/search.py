@@ -43,10 +43,11 @@ class SearchSpider(scrapy.Spider):
             
             
     def parse_results(self, response):
-        titles = response.css('h4.title').xpath('a/@title').extract()
-        urls = response.css('h4.title').xpath('a/@href').extract()
-        bylines = response.css('p.author-meta').xpath('a/text()').extract()
-        
+        articles = response.xpath('//div[@id="articleindex"]')
+        titles = articles.xpath('a/@title').extract()
+        urls = articles.xpath('a/@href').extract()
+        bylines = articles.css('div.meta>p.name').xpath('a/text()').extract()
+
         items = [dict(zip(('title', 'url', 'byline'), res))
             for res in zip(titles, urls, bylines)]
 
@@ -70,39 +71,25 @@ class SearchSpider(scrapy.Spider):
         
     def parse_article(self, response):
         try:
-            date_published = parser.parse(response.xpath(
-                '//meta[@name="cXenseParse:publishtime"]/@content').extract_first()).isoformat()
+            content = '\n'.join(response.xpath('//article//text()').extract()).strip()
         except:
-            logging.error('UNHERD: BROKEN DATE FOR: {}'.format(response.url))
-            date_published = None
-
-        preview = response.css('div.metabox').xpath(
-            'h4/text()').extract_first()
-        
-        if not preview:
-            description_xp = '//meta[@property="og:description"]/@content'
-            preview = response.xpath(description_xp).extract_first().split('[')[0]
-
-        content = '\n'.join(response.css('div#artbody').xpath(
-            '//p/span/text()').extract()).strip()
-        
-        if not content:
-            content = content_p(response.css('div#artbody').xpath('//p'))
-        
-        if not content:
-            content = content_p(response.css('div.thepostinner').xpath('//p'))
-
-        if not content:
-            content = '\n'.join(response.xpath('//span[@style="font-weight: 400;"]/text()').extract())
+            content = None
 
         if not content:
             logging.error('UNHERD: MISSING CONTENT FOR: {}'.format(response.url))
+
+        try:
+            date_published = parser.parse(response.css('div.authorinfo').xpath(
+                '//h5/following-sibling::h6/text()').extract_first()).isoformat()
+        except:
+            logging.error('UNHERD: BROKEN DATE FOR: {}'.format(response.url))
+            date_published = None
 
         item = {k: response.meta.get(k) for k in
             ('title', 'url', 'byline')}
         
         item['date_published'] = date_published
-        item['preview'] = preview
+        item['preview'] = None
         item['content'] = content
         item['raw'] = response.text
         item['source'] = 'Unherd'

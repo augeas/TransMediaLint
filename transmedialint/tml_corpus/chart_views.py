@@ -2,7 +2,7 @@
 from itertools import chain
 
 from bokeh import palettes
-from bokeh.embed import components
+from bokeh.embed import file_html
 from bokeh.models import ColumnDataSource
 from bokeh.layouts import column
 from bokeh.plotting import figure
@@ -98,15 +98,10 @@ def source_entity_chart(request):
     
     charts = [entity_stack(src, page, df, top_entities)
         for page in range(pages)]
-    
-    script, div = components(column(*charts))
-    
+
     title = 'Named Entities from Articles in {}'.format(src.name)
-    
-    return render(request, 'charts/chart.html', {
-        'script': script, 'div': div, 'title': title,
-        'js_files': CDN.js_files
-    })
+
+    return HttpResponse(file_html(column(*charts), CDN, title))
 
 
 def entities_by_article(art_ids):
@@ -152,14 +147,9 @@ def annotated_entity_chart(request):
     
     charts = [entity_stack(src, page, entity_df, top_entities,
         palette=palette, suffix=suffix) for page in range(pages)]
-            
-    script, div = components(column(*charts))
-    
+
     title = 'Named Entities from Articles rated {} in {}'.format(rating,
         src.name)
-    
-    return render(request, 'charts/chart.html', {
-        'script': script, 'div': div, 'title': title,
-        'js_files': CDN.js_files
-    })
+
+    return HttpResponse(file_html(column(*charts), CDN, title))
 

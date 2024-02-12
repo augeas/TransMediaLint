@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.db.models.functions import ExtractMonth, Trunc
 from django.shortcuts import render
 
-from bokeh.embed import components
+from bokeh.embed import file_html
 from bokeh.models import AnnularWedge, ColumnDataSource, Legend, LegendItem, Plot, Range1d
 from bokeh import palettes
 from bokeh.plotting import figure
@@ -109,13 +109,8 @@ def rated_article_chart(request):
     fig.outline_line_color = None
     fig.legend.location = 'top_left'
     fig.legend.orientation = 'vertical'
-    
-    script, div = components(fig)
 
-    return render(request, 'charts/chart.html', {
-        'script':script, 'div': div, 'title': title,
-        'js_files': CDN.js_files
-    })
+    return HttpResponse(file_html(fig, CDN, title))
 
 
 def cumulative_angle(df, source, start, end):
@@ -292,15 +287,10 @@ def rated_author_chart(request):
     fill_legend(rating_legend, fake_df.label, fake_render)
         
     plot.add_layout(rating_legend, 'below')
-
-    script, div = components(plot)
         
     title = 'Articles from {} rated by author'.format(source.name)
 
-    return render(request, 'charts/chart.html', {
-        'script' :script, 'div': div, 'title': title,
-        'js_files': CDN.js_files
-    })
+    return HttpResponse(file_html(plot, CDN, title))
 
 
 def annotation_label_chart(request):
@@ -359,10 +349,4 @@ def annotation_label_chart(request):
     fig.yaxis.major_label_text_font_size = '12pt'
     fig.outline_line_color = None
 
-    script, div = components(fig)
-
-    return render(request, 'charts/chart.html', {
-        'scripts': script, 'div': div, 'title': title,
-        'js_files': CDN.js_files
-    })
-
+    return HttpResponse(file_html(fig, CDN, title))
