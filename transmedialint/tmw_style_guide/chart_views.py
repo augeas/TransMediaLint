@@ -47,22 +47,27 @@ def get_rated_df(rating, query):
     return df
 
 
-def article_filters(request):
+def article_filters(request, prefix=None):
     filters = {}
+    if prefix:
+        filter_prefix = prefix + '__'
+    else:
+        filter_prefix = ''
+
     for name, model in article_models.items():
         slug = request.GET.get(name)
         if slug:
             try:
                 obj = model.objects.get(slug=slug)
-                filters[name] = obj
+                filters[filter_prefix + name] = obj
             except model.DoesNotExist:
                 raise Http404('{} {} does not exist.'.format(name.capitalize(), slug))
     
     year = request.GET.get('year', False)
     if year:
-        filters['date_published__year'] = int(year)
+        filters[filter_prefix + 'date_published__year'] = int(year)
                 
-    source = filters.get('source', False)
+    source = filters.get(filter_prefix + 'source', False)
     if not source:
         raise Http404('No source specified')
     
@@ -85,8 +90,13 @@ def rated_article_chart(request):
     
     chart_data = ColumnDataSource(data=data)
     
-    title = 'Articles from {} rated by the TransMediaWatch style-guide'.format(source.name)
-    
+    title = 'Articles from {}'.format(source.name)
+    if filters.get('author'):
+        title += ' by {}'.format(filters['author'].name)
+    if filters.get('date_published__year'):
+        title += ' in {}'.format(filters['date_published__year'])
+    title += ' rated by the TransMediaWatch style-guide'.format(source.name)
+
     fig = figure(width=768, height=512, x_axis_type="datetime", title=title,)
     
     fig.vbar_stack(['green','yellow','red'], x='index', width=0.9, 
@@ -294,21 +304,15 @@ def rated_author_chart(request):
 
 
 def annotation_label_chart(request):
-    slug = request.GET.get('source')
-    if not slug:
-        raise Http404('No source specified')
-    
-    try:
-        src = Source.objects.get(slug=slug)
-    except:
-        raise Http404('No such source: {}'.format(slug))
+    filters = article_filters(request, prefix='article')
+    src = filters.get('article__source')
 
     if request.GET.get('nouns') == 'true':
         exclude = {}
     else:
         exclude = {'label': 'transgender as a noun'}
-    
-    query = Annotation.objects.filter(article__source__slug=slug).exclude(
+
+    query = Annotation.objects.filter(**filters).exclude(
         **exclude).annotate(
         month=Trunc('article__date_published', 'month')).values(
         'month', 'label').annotate(count=Count('id')).order_by('month')
@@ -322,10 +326,18 @@ def annotation_label_chart(request):
         {'count': 'sum'}).reset_index().sort_values(
         'count', ascending=False).label)[0:20]
     
-    colour = palettes.d3['Category20'][len(sorted_lables)]
+    label_count = max(3, len(sorted_lables))
+
+    colour = palettes.d3['Category20'][label_count][0: len(sorted_lables)]
     
     title = 'Article Annotations from {}'.format(src.name)
+
+    if filters.get('article__author'):
+        title += ' by {}'.format(filters['article__author'].name)
     
+    if filters.get('article__date_published__year'):
+        title += ' in {}'.format(filters['article__date_published__year'])
+
     chart_data = ColumnDataSource(data=label_counts_by_month)
     
     fig = figure(width=1024, height=512, x_axis_type="datetime",       
