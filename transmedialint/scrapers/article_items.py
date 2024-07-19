@@ -14,7 +14,7 @@ class ArticleItem(Item):
     content = Field()
     raw = Field()
     source = Field()
-    
+
     source_id = Field()
     article_id = Field()
     doc = Field()
@@ -22,23 +22,27 @@ class ArticleItem(Item):
     def __repr__(self):
         r = {}
         for attr, value in self.__dict__['_values'].items():
-            if attr not in ('content', 'raw', 'created', 'source_id', 'article_id', 'doc'):
+            if attr not in (
+                'content', 'raw', 'created', 'source_id', 'article_id', 'doc'):
                 r[attr] = value
-        return json.dumps(r, sort_keys=True, indent=4, separators=(',', ': '))
-    
-    
+        return json.dumps(r, sort_keys=True, indent=4, eparators=(',', ': '))
+
+
 def response_article(source, response, content=None, content_css=None):
-    logging.info('{}: SCRAPED: {} '.format(source.upper(),
-        response.meta['title']))
-    
+    logging.info(
+        '{}: SCRAPED: {} '.format(source.upper(),
+        response.meta['title'])
+    )
+
     item = {'source': source, 'raw': response.text}
-    
+
     if content_css:
-        item['content'] = '\n'.join(response.css(content_css).xpath('text()').extract())
+        item['content'] = '\n'.join(response.css(content_css).xpath(
+            'text()').extract())
     else:
         item['content'] = content
 
     for attr in ('title', 'byline', 'url', 'date_published', 'preview'):
         item[attr] = response.meta.get(attr)
-        
+
     return ArticleItem(**item)

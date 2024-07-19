@@ -10,17 +10,18 @@ from scrapers.article_items import response_article
 from transmedialint import settings as tml_settings
 
 base_url = 'https://www.dailymail.co.uk/home/search.html'
-search_args = 'offset={}&size={}&sel=site&searchPhrase={}&sort=recent&type=article&days=all'
+search_args = ('offset={}&size={}&sel=site&searchPhrase={}'
+    +'&sort=recent&type=article&days=all',)
 
 DEFAULT_QUERY = ' '.join(tml_settings.DEFAULT_TERMS)
 
-UA ='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.1'
+UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
+    + '(KHTML, like Gecko) Version/16.6 Safari/605.1.1')
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
     source = 'The Daily Mail'
-    
-    
+
     def __init__(self, query=DEFAULT_QUERY, last_scraped=None, **kwargs):
         logging.info('SEARCHING THE DAILY MAIL FOR :{}'.format(query))
         self.terms = query.split()
@@ -28,11 +29,10 @@ class SearchSpider(scrapy.Spider):
             self.last_scraped = last_scraped
         else:
             self.last_scraped = datetime.fromtimestamp(0).isoformat()
-        super().__init__(**kwargs)    
+        super().__init__(**kwargs)
 
         self.user_agent = UA
         self.cookies = {}
-
 
     def start_requests(self):
         yield from self.search_pages(offset=0, terms=self.terms)
@@ -47,14 +47,13 @@ class SearchSpider(scrapy.Spider):
             meta={'offset': offset, 'term': term}, dont_filter=True)
             for url, term in zip(urls, terms))
 
-
     def parse(self, response):
         offset = response.meta.get('offset', 0)
         next_offset = 50 + offset
         search_term = response.meta.get('term')
         logging.info('DAILY MAIL: {} NEXT OFFSET: {}'.format(
             search_term, next_offset))
-        
+
         titles = response.css('h3.sch-res-title').xpath('a/text()').extract()
 
         urls = ['https://www.dailymail.co.uk' + u if not u.startswith('/wires')
@@ -79,7 +78,8 @@ class SearchSpider(scrapy.Spider):
         
         valid_meta = filter(lambda m: all(m.values()), meta)
         
-        new = filter(lambda m: m['date_published'] > self.last_scraped, valid_meta)
+        new = filter(lambda m: m['date_published'] > self.last_scraped,
+            valid_meta)
         
         requests = [scrapy.Request(url=m['url'], callback=self.parse_article,
             headers = {'User-Agent': self.user_agent}, cookies=self.cookies,
@@ -95,12 +95,12 @@ class SearchSpider(scrapy.Spider):
                 search_term, response.url))
       
     def parse_article(self, response):
-        content = '\n'.join(response.css('p.mol-para-with-font').xpath('text()').extract())
+        content = '\n'.join(response.css('p.mol-para-with-font').xpath(
+            'text()').extract())
         if not content:
-            content = ' '.join(filter(None, chain.from_iterable(map(str.split, response.xpath(
+            content = ' '.join(filter(None, chain.from_iterable(
+                map(str.split, response.xpath(
                 '//div[@itemprop="articleBody"]/descendant::text()').extract()))))
 
         yield response_article(self.source, response,
             content=content)
-
-        
