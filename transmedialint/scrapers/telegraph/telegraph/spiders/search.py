@@ -5,31 +5,29 @@ import logging
 import os
 import re
 
+from dateutil import parser
 import scrapy
-from scrapy_selenium import SeleniumRequest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from scrapy_playwright.page import PageMethod
 
 from scrapers.article_items import ArticleItem
 from transmedialint import settings as tml_settings
 
+SEARCH_JSON = {
+    "exact": True ,"active": True, "sort-by": "date", "sort-dir": "desc",
+    "from": 0, "size": 12, "snippets": True, "sources": ["aem"],
+    "allows":[], "blocks": ["betting", "financial-services"]
+}
 
 class TelegraphSpider(scrapy.Spider):
     name = 'search'
-    start_urls = ['https://www.telegraph.co.uk/']
 
     def __init__(self, **kwargs):
-        self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/103.0.5060.53 Safari/537.36'
-        self.cookies = {}
 
         query = kwargs.get('query', None)
         if query:
             self.terms = query.split()
         else:
             self.terms = tml_settings.DEFAULT_TERMS
-
-        logging.info(self.terms)
 
         try:
             self.last_scraped = parser.parse(
@@ -44,221 +42,94 @@ class TelegraphSpider(scrapy.Spider):
 
         assert self.username and self.password
 
-        self.cookies = {}
-        self.cx = ''
-        self.cse_token = ''
-        self.cse_version = ''
-
-        super().__init__(**kwargs)
-
-
-    def init_req(self):
-        return SeleniumRequest(url=self.start_urls[0], callback=self.login,
-            errback=self.errback, dont_filter=True)
-
-
-    def errback(self):
-        yield self.init_req()
-
+        #super().__init__(**kwargs)
 
     def start_requests(self):
-        yield self.init_req()
+        yield scrapy.Request(
+            'https://secure.telegraph.co.uk/customer/secure/login',
+            callback=self.login,
+            meta={
+                'playwright': True,
+                'playwright_include_page': True,
+                'playwright_page_methods': [
+                    PageMethod('wait_for_selector', 'iframe[title~="Consent"]'),
+                ]
+            }
+        )
 
+    async def login(self, response):
+        page = response.meta["playwright_page"]
 
-    def login(self, response):
-        TIMEOUT = 30
+        await page.frame_locator('[title~="Consent"]').locator(
+            'div.buttons-desktop>button[aria-label~="No,"]').click()
 
-        driver = response.request.meta['driver']
+        await page.locator('input[name="email"]').fill(self.username)
+        await page.locator('button[id="login-button"]').click()
+        await page.locator('input[name="password"]').fill(self.password)
+        await page.locator('button[id="login-button"]').click()
+        await page.locator(
+            'div.e-site-header-button--sign-in>a.e-site-header-button__link'
+        ).click()
+        logging.info('TELEGRAPH: LOGGED IN')
 
-        borked = False
-
-        try:
-            frame = WebDriverWait(driver, TIMEOUT).until(
-                EC.presence_of_element_located((By.XPATH,
-                '//iframe[starts-with(@id,"sp_message")]'))
-            )
-        except:
-            borked = True
-            yield self.init_req()
-
-        if not borked:
-            logging.info('TELEGRAPH: switching to iframe...')
-            driver.switch_to.frame(frame)
-
-            try:
-                button = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.XPATH,
-                    '//button[@title="Accept"]'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-
-        if not borked:
-            logging.info('TELEGRAPH: accepting cookies...')
-            driver.execute_script("arguments[0].click();", button)
-
-            driver.switch_to.default_content()
-
-            try:
-                login = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR,
-                    'div.e-site-header-button--sign-in>a'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-
-        if not borked:
-            logging.info('TELEGRAPH: starting log-in...')
-            login.click()
-
-            try:
-                email = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.XPATH,
-                '//input[@name="email"]'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-        if not borked:
-            logging.info('TELEGRAPH: sending username...')
-            email.send_keys(self.username)
-
-            try:
-                cont = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.XPATH,
-                    '//button[@id="login-button"]'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-        if not borked:
-            cont.click()
-
-            try:
-                pw = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.XPATH,
-                    '//input[@id="password"]'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-        if not borked:
-            logging.info('TELEGRAPH: sending password...')
-            pw.send_keys(self.password)
-
-            try:
-                cont = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.XPATH,
-                    '//button[@id="login-button"]'))
-                )
-            except:
-                borked = True
-                yield self.init_req()
-
-        if not borked:
-            cont.click()
-
-            try:
-                logged_in = WebDriverWait(driver, TIMEOUT).until(
-                    EC.presence_of_element_located((By.CSS,
-                    'div.martech-profile-notification-button__content'))
-                )
-                logging.info('TELEGRAPH: logged in')
-            except:
-                logging.info('TELEGRAPH: log-in timeout...')
-
-            self.cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-            self.user_agent = driver.execute_script("return navigator.userAgent")
-
-            logging.info(json.dumps(self.cookies))
-
-            yield scrapy.Request('https://www.telegraph.co.uk/search.html',
-                headers={'User-Agent': self.user_agent}, cookies=self.cookies,
-                callback=self.parse_search)
-
-
-    def parse_search(self, response):
-        scr = response.css('div.component-content').xpath('script/text()').extract_first()
-        self.cx = re.findall('(?<=var cx = ")[^"]+', scr)[0]
-
-        yield scrapy.Request('https://cse.google.com/cse.js?cx={}'.format(self.cx),
-            headers = {'User-Agent': self.user_agent},
-            callback = self.parse_script)
-
-
-    def cse_request(self, term, num=10, start=0, sort=''):
-        pars = {
-            'rsz': 'filtered_cse', 'num': str(num), 'hl': 'en',
-            'source': 'gcsc', 'gss': '.uk',
-            'cselibv': self.cse_version, 'cx': self.cx, 'q': term,
-            'safe': 'active', 'cse_tok': self.cse_token, 'sort': sort,
-            'exp': 'csqr,cc', 'callback': 'google.search.cse.api'
-        }
-
-        if start:
-            pars['start'] = str(start)
-
-        search_url = 'https://cse.google.com/cse/element/v1'
-
-        return scrapy.FormRequest(search_url, method='GET', formdata=pars,
-            meta = {'term': term, 'start': start, sort: sort}, dont_filter = True,
-            callback = self.parse_results)
-
-
-    def parse_script(self, response):
-        self.cse_token = re.findall('(?<="cse_token": ")[^"]+', response.text)[0]
-        self.cse_version = re.findall('(?<="cselibVersion": ")[^"]+', response.text)[0]
 
         for term in self.terms:
-            yield self.cse_request(term)
-            yield self.cse_request(term, sort='date')
+            search_pars = SEARCH_JSON.copy()
+            search_pars['terms'] = term
 
+            yield scrapy.Request(
+                'https://api.telegraph.co.uk/content-text-search/v2',
+                method="POST",
+                body = json.dumps(search_pars),
+                meta = {'term': term, 'offset': 0},
+                headers = {'Content-Type': 'application/json; charset=UTF-8'},
+                callback=self.search
+            )
 
-    def parse_results(self, response):
-        try:
-            results = json.loads(re.split('google.search.cse.api\(',
-                response.text)[-1][:-2])['results']
-        except:
-            results = []
+        await page.close()
 
-        logging.info('TELEGRAPH: {} CSE results for {} from {}.'.format(
-            len(results), response.meta.get('term'),
-            response.meta.get('start')))
+    async def search(self, response):
+        results = json.loads(response.body)
+        hits = results.get('hits', [])
+        term = response.meta['term']
+        offset = response.meta.get('offset', 0)
 
-        for result in results:
-            yield scrapy.Request(result['url'], cookies=self.cookies,
-                headers={'User-Agent': self.user_agent},
-                callback=self.parse_article)
+        logging.info('TELEGRAPH: {} results for {} from {}.'.format(
+            len(hits), term, offset)
+        )
 
-        if results:
-            term = response.meta['term']
-            start = response.meta.get('start', 0)
+        for article in hits:
+            yield scrapy.Request(
+                article['url'],
+                meta={'article': article, 'term': term},
+                callback=self.parse_article
+            )
 
-            if start:
-                nxt = start + 10
-            else:
-                nxt = 11
+        total_hits = results.get('total', 0)
+        next_page = offset + results.get('query', {}).get('size', 0)
+        if total_hits > next_page:
+            search_pars = SEARCH_JSON.copy()
+            search_pars['terms'] = term
+            search_pars['from'] = next_page
 
-            yield self.cse_request(term, start=nxt, sort=response.meta.get('sort', ''))
+            yield scrapy.Request(
+                'https://api.telegraph.co.uk/content-text-search/v2',
+                method="POST",
+                body = json.dumps(search_pars),
+                meta = {'term': term, 'offset': next_page},
+                headers = {'Content-Type': 'application/json; charset=UTF-8'},
+                callback=self.search
+            )
 
-
-    def parse_article(self, response):
+    async def parse_article(self, response):
         content = ''.join(response.css('div.article-body-text').xpath(
             'descendant::text()').extract())
 
-        byline = response.css('span.e-byline__author').xpath(
-            '@content').extract_first()
+        result = response.meta['article']
 
-        if not byline:
-            byline = response.css('span.byline__author-name').xpath(
-                '@content').extract_first()
+        byline = result.get('authors')
+        title = result.get('headline')
+        date_published = parser.parse(result.get('date')).isoformat()
 
         try:
             title =  response.css('h1.e-headline').xpath(
@@ -267,18 +138,9 @@ class TelegraphSpider(scrapy.Spider):
             title = response.xpath(
                 '//meta[@name="twitter:description"]/@content').extract_first()
 
-        date_published = response.css('time.e-published-date').xpath(
-            '@datetime').extract_first()
-
-        try:
-            preview = response.css('p.e-standfirst').xpath(
-                'text()').extract_first().strip()
-        except:
-            preview = title
-
         article = {
             'content': content, 'byline': byline, 'title': title,
-            'date_published': date_published, 'preview': preview,
+            'date_published': date_published, 'preview': title,
             'raw': response.text, 'url': response.url,
             'source': 'The Telegraph'
         }

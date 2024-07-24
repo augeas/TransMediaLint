@@ -17,5 +17,6 @@ spacy
 python-scrapyd-api
 scrapyd-client
 scrapyd
-scrapy-selenium
+scrapy-playwright
+
 

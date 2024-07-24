@@ -25,7 +25,7 @@ class ArticleItem(Item):
             if attr not in (
                 'content', 'raw', 'created', 'source_id', 'article_id', 'doc'):
                 r[attr] = value
-        return json.dumps(r, sort_keys=True, indent=4, eparators=(',', ': '))
+        return json.dumps(r, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def response_article(source, response, content=None, content_css=None):

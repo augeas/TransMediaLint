@@ -4,6 +4,7 @@ import itertools
 import logging
 import re
 
+from asgiref.sync import sync_to_async
 from dateutil import parser as dateparser
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
@@ -49,6 +50,7 @@ class TMLintPipeline(object):
         return tok.pos_ == 'NOUN' and tok.text.lower() == 'transgender'
     
 
+    @sync_to_async
     def process_item(self, item, spider):
         
         art_id = item.get('article_id', False)

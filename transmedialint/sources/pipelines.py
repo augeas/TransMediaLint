@@ -6,6 +6,7 @@ import os
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
 
+from asgiref.sync import sync_to_async
 from dateutil import parser as dateparser
 from django.core.files.base import ContentFile
 from django.utils import timezone as localtimezone
@@ -45,9 +46,9 @@ class ArticlePipeline(object):
 
     
     def clean_names(self, names):
-        names = re.split('\s[fF][oO][rR]\s',names)[0]
-        names = re.split('\s[tT][oO]\s',names)[-1]
-        return re.split('[,&]|\s[aA][nN][dD]\s',names)
+        names = re.split(r'\s[fF][oO][rR]\s',names)[0]
+        names = re.split(r'\s[tT][oO]\s',names)[-1]
+        return re.split(r'[,&]|\s[aA][nN][dD]\s',names)
     
     
     def capital_name(self, name):
@@ -81,7 +82,7 @@ class ArticlePipeline(object):
         
         return existing + new_authors
         
-        
+    @sync_to_async
     def process_item(self, item, spider):
         slug = slugify(item['title'])
 
@@ -101,6 +102,7 @@ class ArticlePipeline(object):
                 date_retrieved = localtimezone.now())
         except:
             raise DropItem('SKIPPED: '+slug)
+
 
         art_authors = self.get_authors(item['byline'])
         

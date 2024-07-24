@@ -1,4 +1,5 @@
 
+from asgiref.sync import sync_to_async
 from scrapy.exceptions import DropItem
 import spacy
 
@@ -17,7 +18,7 @@ class NERPipeline(object):
         return ent.label_ not in ('PRODUCT', 'DATE', 'TIME', 'PERCENT', 'MONEY',
             'QUANTITY', 'ORDINAL', 'CARDINAL') and 'http' not in ent.text
 
-    
+    @sync_to_async
     def process_item(self, item, spider):
         
         art_id = item.get('article_id', False)
