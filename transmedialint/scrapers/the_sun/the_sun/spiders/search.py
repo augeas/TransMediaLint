@@ -1,6 +1,8 @@
 
 from datetime import datetime
+import json
 import logging
+import re
 
 from dateutil import parser
 import scrapy
@@ -34,49 +36,55 @@ class SearchSpider(scrapy.Spider):
             self.terms))
                 
         yield from (scrapy.Request(url=u, callback=self.parse,
-            meta={'page': 1, 'term': t}) for u, t in zip(urls,self.terms))
+            meta={'term': t}) for u, t in zip(urls,self.terms)
+        )
 
-        
-    def parse(self, response):
-        page = response.meta['page'] + 1
-        
-        timestamps = (parser.parse(t) for t in
-            response.css('.search-date').xpath('./text()').extract())
-        
-        urls = response.css('.teaser-anchor--search').xpath(
-            './@href').extract()
+    async def parse(self, response):
+        term = response.meta['term']
+        page = response.meta.get('page', 1)
 
-        new = list(filter(lambda t: t[0].isoformat() > self.last_scraped,
-            zip(timestamps, urls)))
-        
-        if new:
-            yield from (scrapy.Request(url=u, callback=self.parse_article)
-                for t, u in new)
-        
-            url = 'https://www.thesun.co.uk/page/{}/?s={}'.format(page,
-                response.meta['term'])
-        
-            yield scrapy.Request(url=url, callback=self.parse,
-                meta={'page': page, 'term': response.meta['term']})
-        
-        
-    def parse_article(self, response):
-        timestamp = parser.parse(response.xpath('//time/@datetime').extract_first()).isoformat()
+        results = response.css('div.teaser__copy-container')
+        urls = map(
+            'https://www.thesun.co.uk{}'.format,
+            results.xpath('a/@href').extract()
+        )
 
-        try:
-            author = response.css('.author')[0].xpath('@data-author').extract_first()
-        except:
-            author = response.css('.article__author-name').xpath('text()').extract_first()
-        
-        title = response.css('.article__headline')[0].xpath(
-            './text()').extract_first()
+        preview_h3 = results.css('h3.teaser__subdeck').xpath(
+            '@data-original-text').extract()
+        preview_p = results.css('p.teaser__lead').xpath('text()').extract()
+        previews = list(map('\n'.join,zip(preview_h3, preview_p)))
 
-        preview = response.xpath('//meta[@name="description"]/@content').extract_first()
+        for url, preview in zip(urls, previews):
+            yield scrapy.Request(
+                url, meta={'preview': preview},
+                callback=self.parse_article
+            )
 
-        content = '\n'.join(response.css('div.article__content')[0].xpath(
-            'descendant::p|span|h2|a').xpath('text()').extract())
+        logging.info('THE SUN: SEARCH {} PAGE {}'.format(
+            term, page)
+        )
+
+        page += 1
+        yield scrapy.Request(
+            'https://www.thesun.co.uk/page/{}/?s={}'.format(page, term),
+            meta={'page': page, 'term': term}, callback=self.parse,
+        )
+
+    async def parse_article(self, response):
+        jdata = json.loads(response.xpath(
+            '//script[@type="application/ld+json"]/text()').extract_first()
+        )
+        timestamp = parser.parse(jdata['datePublished']).isoformat()
+        title = jdata['headline']
+        author = jdata['author'][0]['name']
+        content = '\n'.join(
+            response.css('div.article__content>p').xpath('text()').extract()
+        )
+
+        logging.info('THE SUN: {}'.format(title))
 
         yield ArticleItem(**{'title': title, 'byline': author,
-            'preview': preview, 'url': response.url,'date_published': timestamp,
-            'content': content, 'raw': response.text, 'source': 'The Sun'})
-
+            'preview': response.meta.get('preview'), 'url': response.url,
+            'date_published': timestamp,'content': content,
+            'raw': response.text, 'source': 'The Sun'}
+        )
