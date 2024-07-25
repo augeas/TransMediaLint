@@ -29,7 +29,7 @@ class SearchSpider(scrapy.Spider):
                 meta={'term': term, 'page': 1},
                 callback=self.parse_results)
 
-    def parse_results(self, response):
+    async def parse_results(self, response):
         wanchors = response.css('a.card-v2__title-link')
 
         titles = wanchors.xpath('text()').extract()
@@ -42,8 +42,9 @@ class SearchSpider(scrapy.Spider):
         items = [dict(zip(('title', 'url', 'byline', 'preview'), res))
             for res in zip(titles, urls, bylines, previews)]
 
-        yield from (scrapy.Request(url=item['url'], meta=item,
-            callback=self.parse_article) for item in items)
+        for req in (scrapy.Request(url=item['url'], meta=item,
+            callback=self.parse_article) for item in items):
+            yield req
 
         page = response.meta.get('page', 1) + 1
         term = response.meta['term']
@@ -53,7 +54,7 @@ class SearchSpider(scrapy.Spider):
                 meta={'term': term, 'page': page},
                 callback=self.parse_results)
 
-    def parse_article(self, response):
+    async def parse_article(self, response):
         try:
             date_published = parser.parse(
                 response.xpath('//time/@datetime').extract_first()).isoformat()

@@ -35,7 +35,7 @@ class SearchSpider(scrapy.Spider):
     def start_requests(self):
         yield from map(self.search_request, self.terms)
 
-    def parse_results(self, response):
+    async def parse_results(self, response):
         authors = response.css(
             'div.compressed-mobile>div.post>h4.title-xxs>a').xpath(
             'text()').extract()
@@ -75,7 +75,7 @@ class SearchSpider(scrapy.Spider):
             logging.info('SPIKED, NEXT OFFSET: {}'.format(offset))
             yield self.search_request(response.meta['term'], offset)
 
-    def parse_article(self, response):
+    async def parse_article(self, response):
         logging.info('SPIKED: SCRAPED: {} '.format(response.meta['title']))
 
         content = ''.join(response.css('div.cms').xpath(

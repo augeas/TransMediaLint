@@ -42,7 +42,7 @@ class SearchSpider(scrapy.Spider):
                 callback=self.parse_results)
             
             
-    def parse_results(self, response):
+    async def parse_results(self, response):
         articles = response.xpath('//div[@id="articleindex"]')
         titles = articles.xpath('a/@title').extract()
         urls = articles.xpath('a/@href').extract()
@@ -51,8 +51,9 @@ class SearchSpider(scrapy.Spider):
         items = [dict(zip(('title', 'url', 'byline'), res))
             for res in zip(titles, urls, bylines)]
 
-        yield from (scrapy.Request(url=item['url'], meta=item,
-            callback=self.parse_article) for item in items)
+        for req in  (scrapy.Request(url=item['url'], meta=item,
+            callback=self.parse_article) for item in items):
+            yield req
         
         next_page = response.meta.get('page', 1) + 1
         
@@ -69,7 +70,7 @@ class SearchSpider(scrapy.Spider):
                 meta={'term': term, 'page': next_page, 'max_page': max_page},
                 callback=self.parse_results)
         
-    def parse_article(self, response):
+    async def parse_article(self, response):
         try:
             content = '\n'.join(response.xpath('//article//text()').extract()).strip()
         except:
