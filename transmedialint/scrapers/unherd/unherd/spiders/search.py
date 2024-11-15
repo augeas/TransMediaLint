@@ -72,7 +72,7 @@ class SearchSpider(scrapy.Spider):
         
     async def parse_article(self, response):
         try:
-            content = '\n'.join(response.xpath('//article//text()').extract()).strip()
+            content = '\n'.join(response.xpath('//article//p/text()').extract()).strip()
         except:
             content = None
 
@@ -80,8 +80,7 @@ class SearchSpider(scrapy.Spider):
             logging.error('UNHERD: MISSING CONTENT FOR: {}'.format(response.url))
 
         try:
-            date_published = parser.parse(response.css('div.authorinfo').xpath(
-                '//h5/following-sibling::h6/text()').extract_first()).isoformat()
+            date_published = parser.parse(response.css('div.authorinfo>h6').xpath('text()').extract()[-1]).isoformat()
         except:
             logging.error('UNHERD: BROKEN DATE FOR: {}'.format(response.url))
             date_published = None

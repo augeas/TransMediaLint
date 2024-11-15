@@ -163,8 +163,10 @@ def rated_author_chart(request):
         
     author_df = query_df.pivot(
         columns='ratedarticle__rating', index='author__name',
-        values='rating_count').fillna(0).reset_index()
-    
+        values='rating_count').fillna(0).reset_index()[
+            ['author__name', 'green', 'yellow', 'red']
+        ]
+
     if 'red' in author_df.columns:
         author_df.sort_values('red', ascending=False, inplace=True)
     elif 'yellow' in author_df.columns:
@@ -238,6 +240,8 @@ def rated_author_chart(request):
     
     author_fractions_df.sort_values(['total_red_frac', 'rating'],
         ascending=False, inplace=True)
+
+    author_fractions_df.dropna(inplace=True)
 
     author_fractions_df['frac'] = author_fractions_df.rating_count / total_articles
     
