@@ -62,14 +62,13 @@ class TelegraphSpider(scrapy.Spider):
 
         await page.frame_locator('[title~="Consent"]').locator(
             'div.buttons-desktop>button[aria-label~="No,"]').click()
-
+        logging.info('TELEGRAPH: COOKIE CONSENT')
         await page.locator('input[name="email"]').fill(self.username)
         await page.locator('button[id="login-button"]').click()
+        logging.info('TELEGRAPH: USERNAME')
         await page.locator('input[name="password"]').fill(self.password)
         await page.locator('button[id="login-button"]').click()
-        await page.locator(
-            'div.e-site-header-button--sign-in>a.e-site-header-button__link'
-        ).click()
+        logging.info('TELEGRAPH: PASSWORD')
         logging.info('TELEGRAPH: LOGGED IN')
 
 

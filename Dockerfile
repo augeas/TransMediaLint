@@ -6,7 +6,7 @@ RUN apt update -y && apt install -y curl dnsutils zip
 RUN pip install uv 
 RUN uv pip install --system -r transmedialint/requirements.txt
 RUN python -m spacy download en_core_web_sm
-RUN playwright install-deps && playwright install chromium
+RUN playwright install-deps && playwright install firefox
     
 ADD transmedialint /transmedialint
 
