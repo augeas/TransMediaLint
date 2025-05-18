@@ -8,10 +8,7 @@ import re
 
 from dateutil import parser
 import scrapy
-from scrapy_selenium import SeleniumRequest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from scrapy_playwright.page import PageMethod
 
 from scrapers.article_items import ArticleItem
 from transmedialint import settings as tml_settings
@@ -23,7 +20,7 @@ SEARCH_PAGE_URL = 'https://www.thetimes.co.uk/search?p={}&q={}&source=search-pag
 
 class TimesSpider(scrapy.Spider):
     name = 'search'
-    start_urls = ['https://www.thetimes.co.uk']
+    start_urls = ['https://www.thetimes.com/']
 
     def __init__(self, **kwargs):
         self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/103.0.5060.53 Safari/537.36'
@@ -54,9 +51,14 @@ class TimesSpider(scrapy.Spider):
 
 
     def start_requests(self):
-        yield SeleniumRequest(url=self.start_urls[0], callback=self.login)
-
-
+        yield scrapy.Request(url=self.start_urls[0],
+            meta={
+                'playwright': True,
+                'playwright_include_page': True
+            },
+            callback=self.login
+        )
+                              
     def accept_cookies(self, driver):
         logging.info('The Times: Waiting for cookie button...')
 
@@ -137,7 +139,28 @@ class TimesSpider(scrapy.Spider):
 
 
 
-    def login(self, response):
+    async def login(self, response):
+        page = response.meta["playwright_page"]
+
+        try:
+            await page.frame_locator(xpath='//iframe[starts-with(@id,"sp_message")]')
+
+
+        await page.frame_locator('[title~="Consent"]').locator(
+            'div.buttons-desktop>button[aria-label~="No,"]').click()
+        logging.info('TELEGRAPH: COOKIE CONSENT')
+        await page.locator('input[name="email"]').fill(self.username)
+        await page.locator('button[id="login-button"]').click()
+        logging.info('TELEGRAPH: USERNAME')
+        await page.locator('input[name="password"]').fill(self.password)
+        await page.locator('button[id="login-button"]').click()
+        logging.info('TELEGRAPH: PASSWORD')
+        logging.info('TELEGRAPH: LOGGED IN')
+       
+        
+        
+        
+        
         driver = response.request.meta['driver']
 
         try:

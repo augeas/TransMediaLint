@@ -118,11 +118,19 @@ def annotated_entity_chart(request):
     rating = request.GET.get('rating', 'red')
     if rating not in ('red', 'green'):
         rating = 'red'
+
+    article_filters = {
+        'article__source': src,
+        'rating': rating
+    }
     
+    author = request.GET.get('author')
+    if author:
+        article_filters['article__author__slug'] = author
     
-    query = RatedArticle.objects.filter(article__source=src,
-        rating=rating).annotate(month=Trunc('article__date_published',
-        'month')).values('article__id', 'month').order_by('month')
+    query = RatedArticle.objects.filter(**article_filters).annotate(
+        month=Trunc('article__date_published', 'month')).values(
+        'article__id', 'month').order_by('month')
         
     article_df = pd.DataFrame(query)
          

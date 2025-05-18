@@ -32,10 +32,19 @@ class SearchSpider(scrapy.Spider):
         super().__init__(**kwargs)
 
         self.user_agent = UA
-        self.cookies = {}
+
 
     def start_requests(self):
-        yield from self.search_pages(offset=0, terms=self.terms)
+        yield scrapy.Request('https://www.dailymail.co.uk',
+            headers = {'User-Agent': self.user_agent}, callback=self.parse) 
+        
+    def parse(self, _):
+        for term in self.terms:
+            yield scrapy.Request
+
+# https://www.dailymail.co.uk/home/search.html?offset=50&size=50&sel=site&searchPhrase=transgender&sort=recent&type=article&type=video&type=permabox&days=all
+
+
 
     def search_pages(self, offset, terms=None):
         if not terms:
@@ -47,7 +56,7 @@ class SearchSpider(scrapy.Spider):
             meta={'offset': offset, 'term': term}, dont_filter=True)
             for url, term in zip(urls, terms))
 
-    def parse(self, response):
+    def parse_x(self, response):
         offset = response.meta.get('offset', 0)
         next_offset = 50 + offset
         search_term = response.meta.get('term')
