@@ -61,7 +61,7 @@ class TelegraphSpider(scrapy.Spider):
         page = response.meta["playwright_page"]
 
         await page.frame_locator('[title~="Consent"]').locator(
-            'div.buttons-desktop>button[aria-label~="No,"]').click()
+            'div.buttons-desktop>button[aria-label~="Accept"]').click()
         logging.info('TELEGRAPH: COOKIE CONSENT')
         await page.locator('input[name="email"]').fill(self.username)
         await page.locator('button[id="login-button"]').click()
