@@ -13,6 +13,7 @@ gensim
 bokeh
 numpy
 pandas
+Scrapy
 spacy
 python-scrapyd-api
 scrapyd-client

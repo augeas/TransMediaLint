@@ -28,11 +28,10 @@ BOT_NAME = 'telegraph'
 SPIDER_MODULES = ['telegraph.spiders']
 NEWSPIDER_MODULE = 'telegraph.spiders'
 
+COOKIES_DEBUG = True
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'the_times (+http://www.yourdomain.com)'
-
-USER_AGENT =  'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0'
+USER_AGENT =  'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'
 
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",

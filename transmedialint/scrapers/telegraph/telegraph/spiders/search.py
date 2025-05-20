@@ -29,6 +29,8 @@ class TelegraphSpider(scrapy.Spider):
         else:
             self.terms = tml_settings.DEFAULT_TERMS
 
+        self.cookies = {}
+
         try:
             self.last_scraped = parser.parse(
                 kwargs.get('last_scraped', None)).isoformat()
@@ -41,8 +43,6 @@ class TelegraphSpider(scrapy.Spider):
             os.environ.get('TELEGRAPH_PASSWORD'))
 
         assert self.username and self.password
-
-        #super().__init__(**kwargs)
 
     def start_requests(self):
         yield scrapy.Request(
@@ -69,8 +69,25 @@ class TelegraphSpider(scrapy.Spider):
         await page.locator('input[name="password"]').fill(self.password)
         await page.locator('button[id="login-button"]').click()
         logging.info('TELEGRAPH: PASSWORD')
-        logging.info('TELEGRAPH: LOGGED IN')
 
+        try:
+            await page.locator('button.martech-modal-component__close').click()
+            logging.info('TELEGRAPH: CLOSED APP MODAL')
+        except:
+            logging.info('TELEGRAPH: NO APP MODAL')
+
+        try:
+            await page.locator('button.martech-profile-menu__button').click()
+            logging.info('TELEGRAPH: LOGGED IN')
+        except:
+            logging.info('TELEGRAPH: NO PROFILE BUTTON!')
+
+        page_cookies = await page.context.cookies()
+        self.cookies = {
+            c['name']: c['value'] for c in page_cookies if c['domain'].endswith('telegraph.co.uk')
+        }
+
+        await page.close()
 
         for term in self.terms:
             search_pars = SEARCH_JSON.copy()
@@ -85,7 +102,7 @@ class TelegraphSpider(scrapy.Spider):
                 callback=self.search
             )
 
-        await page.close()
+
 
     async def search(self, response):
         results = json.loads(response.body)
@@ -100,7 +117,8 @@ class TelegraphSpider(scrapy.Spider):
         for article in hits:
             yield scrapy.Request(
                 article['url'],
-                meta={'article': article, 'term': term},
+                meta={'article': article, 'term': term, 'playwright': False},
+                cookies = self.cookies,
                 callback=self.parse_article
             )
 
