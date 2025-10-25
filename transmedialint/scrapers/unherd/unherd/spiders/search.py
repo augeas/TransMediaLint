@@ -80,7 +80,10 @@ class SearchSpider(scrapy.Spider):
             logging.error('UNHERD: MISSING CONTENT FOR: {}'.format(response.url))
 
         try:
-            date_published = parser.parse(response.css('div.authorinfo>h6').xpath('text()').extract()[-1]).isoformat()
+            date_published = parser.parse(
+                response.xpath(
+                '//meta[@name="cXenseParse:publishtime"]/@content'
+            ).extract_first()).isoformat()
         except:
             logging.error('UNHERD: BROKEN DATE FOR: {}'.format(response.url))
             date_published = None
