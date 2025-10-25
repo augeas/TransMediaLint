@@ -82,10 +82,10 @@ class TelegraphSpider(scrapy.Spider):
         except:
             logging.info('TELEGRAPH: NO PROFILE BUTTON!')
 
-        page_cookies = await page.context.cookies()
-        self.cookies = {
-            c['name']: c['value'] for c in page_cookies if c['domain'].endswith('telegraph.co.uk')
-        }
+        #page_cookies = await page.context.cookies()
+        #self.cookies = {
+        #    c['name']: c['value'] for c in page_cookies if c['domain'].endswith('telegraph.co.uk')
+        #}
 
         await page.close()
 
@@ -118,7 +118,7 @@ class TelegraphSpider(scrapy.Spider):
             yield scrapy.Request(
                 article['url'],
                 meta={'article': article, 'term': term, 'playwright': False},
-                cookies = self.cookies,
+                #cookies = self.cookies,
                 callback=self.parse_article
             )
 
